@@ -1,0 +1,11 @@
+procurement (purchases) => (items) store
+procurement (purchases) => (stock) inventory
+
+store (items) => (stock) inventory
+
+
+inventory (stock) => (product) sales
+
+
+Sharing
+Giver | Output | Input | Getter | Giver Effects | Getter Effects
