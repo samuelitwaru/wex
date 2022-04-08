@@ -8,4 +8,4 @@ inventory (stock) => (product) sales
 
 
 Sharing
-Giver | Output | Input | Getter | Giver Effects | Getter Effects
+Giver | Getter | Output | Input | Giver Effects | Getter Effects

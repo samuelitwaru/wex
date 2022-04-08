@@ -42,7 +42,7 @@ class StockCategory(TimeStampedModel):
     name = models.CharField(max_length=128)
 
 
-class ProductCategories(TimeStampedModel):
+class StockCategories(TimeStampedModel):
 	stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
 	category = models.ForeignKey(StockCategory, on_delete=models.CASCADE)
 

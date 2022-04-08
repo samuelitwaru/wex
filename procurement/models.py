@@ -1,6 +1,8 @@
 from django.db import models
 from core.models import Item
-from models import TimeStampedModel
+from core.models import TimeStampedModel
+from core.models import Department
+from django.contrib.auth.models import User
 
 
 # Create your models here.
@@ -11,20 +13,20 @@ class Requisition(TimeStampedModel):
     requisition_type = models.CharField(max_length=16) # works, service, supplies
     status = models.CharField(max_length=64) # editing, submitted, approved, rejected, completed
     comments = models.CharField(max_length=1024)
-    user = models.ForeignKey('User', on_delete=models.SET_NULL, null=True)
-    user_in_charge = models.ForeignKey('User', on_delete=models.CASCADE)
-    department = models.ForeignKey('Department', on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    # user_in_charge = models.ForeignKey(User, on_delete=models.CASCADE)
+    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True)
 
 
 class RequisitionItem(TimeStampedModel):
-    item = models.ForeignKey('Item', on_delete=models.SET_NULL)
+    item = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True)
     name = models.CharField(max_length=128)
     model = models.CharField(max_length=128)
     rate = models.IntegerField()
     quantity = models.IntegerField()
     metric = models.CharField(max_length=128)
-    short_spec = models.CharField(max=512)
-    long_spec = models.CharField(max=1024)
+    short_spec = models.CharField(max_length=512)
+    long_spec = models.CharField(max_length=1024)
 
 
 class RequisitionAction(TimeStampedModel):
