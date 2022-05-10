@@ -25,7 +25,7 @@ SECRET_KEY = 'ey(64m&#l9ym6r3)uxv#8uq=ck38ok*^%jq!c5e&-et9_q%wgp'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -38,7 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
-    'procurement'
+    'results',
+    'procurement',
+    'rest_framework',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -49,7 +52,15 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    # 'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
+
+
+
+CORS_ALLOWED_ORIGINS = ['http://localhost:8080']
+CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = 'wex.urls'
 
@@ -76,10 +87,8 @@ WSGI_APPLICATION = 'wex.wsgi.application'
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+    'default': {'ENGINE': 'django.db.backends.mysql','NAME': os.environ["WEX_DB_NAME"],'USER': os.environ["WEX_DB_USER"],'PASSWORD': os.environ["WEX_DB_PASSWORD"]},
+    # 'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),}
 }
 
 

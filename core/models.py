@@ -10,9 +10,12 @@ class TimeStampedModel(models.Model):
 
 
 class Item(TimeStampedModel):
-    name = models.CharField(max_length=128)
-    brand = models.CharField(max_length=128)
-    description = models.CharField(max_length=1024, null=True)
+	name = models.CharField(max_length=128)
+	brand = models.CharField(max_length=128)
+	description = models.CharField(max_length=1024, null=True)
+
+	def __str__(self):
+		return self.name
 
 
 class MetricSystem(TimeStampedModel):
@@ -41,5 +44,7 @@ class Metric(TimeStampedModel):
 
 
 class Department(TimeStampedModel):
-    name = models.CharField(max_length=128, unique=True)
-    
+	name = models.CharField(max_length=128, unique=True)
+
+	def __str__(self):
+		return self.name
