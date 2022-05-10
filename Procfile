@@ -1,1 +1,1 @@
-web: gunicorn bar_project.wsgi
+web: gunicorn wex.wsgi
