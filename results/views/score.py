@@ -10,7 +10,8 @@ class ScoreViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         params = self.request.query_params
-        queryset = self.queryset
+        queryset = super().get_queryset()
         if params:
             queryset = queryset.filter(**params.dict())
+
         return queryset

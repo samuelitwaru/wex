@@ -5,7 +5,7 @@ from ..serializers import TeacherSerializer
 
 
 class ClassRoomSerializer(serializers.ModelSerializer):
-    teacher_detail = TeacherSerializer(read_only=True)
+    teacher_detail = TeacherSerializer(source='teacher', read_only=True)
     
     class Meta:
         model = ClassRoom
