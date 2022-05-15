@@ -1,9 +1,9 @@
 from rest_framework import serializers
 from ..models import Level
-from ..serializers import SubjectSerializer
+from ..serializers import PaperSerializer
 
 class LevelSerializer(serializers.ModelSerializer):
-    subjects = SubjectSerializer(many=True, read_only=True)
+    papers = PaperSerializer(many=True, read_only=True)
     
     class Meta:
         model = Level

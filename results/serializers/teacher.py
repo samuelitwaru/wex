@@ -1,11 +1,11 @@
 from rest_framework import serializers
-from ..models import Teacher, TeacherClassRoomSubject
+from ..models import Teacher, TeacherClassRoomPaper
 
 
-class TeacherClassRoomSubjectSerializer(serializers.ModelSerializer):
+class TeacherClassRoomPaperSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = TeacherClassRoomSubject
+        model = TeacherClassRoomPaper
         fields = '__all__'
 
 

@@ -1,4 +1,6 @@
+from .period import *
 from .subject import *
+from .paper import *
 from .teacher import *
 from .class_room import *
 from .student import *

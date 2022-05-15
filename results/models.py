@@ -1,12 +1,11 @@
-from concurrent.futures.process import _threads_wakeups
-from enum import unique
-from unicodedata import category
+from distutils import extension
+from distutils.command.upload import upload
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 
-from utils import range_with_floats
+from utils import OverwiteStorageSystem, range_with_floats
 
 
 LEVEL_CHOICES = [
@@ -20,20 +19,55 @@ LEVEL_CHOICES = [
 
 PERCENTAGE_VALIDATOR = [MinValueValidator(0), MaxValueValidator(100)]
 
+
+def student_picture_upload_loacation(instance, filename):
+    _, extension = filename.split('.')
+    return f'students/pictures/{instance.id}.{extension}'
+
+def teacher_picture_upload_loacation(instance, filename):
+    _, extension = filename.split('.')
+    return f'teachers/pictures/{instance.id}.{extension}'
+
+
+class Period(models.Model):
+    name = models.CharField(max_length=128)
+    start = models.DateField()
+    stop = models.DateField()
+
+    def __str__(self):
+        return self.name
+
+
 # Create your models here.
 class Subject(models.Model):
+    code = models.CharField(max_length=16, null=True)
     name = models.CharField(max_length=128)
     abbr = models.CharField(max_length=8, null=True, blank=True)
-    
+
     def __str__(self):
-        return f"{self.name}"
+        return f"{self.code} {self.name}"
+
+
+class Paper(models.Model):
+    number = models.IntegerField()
+    description = models.CharField(max_length=128, null=True, blank=True)
+    subject = models.ForeignKey(Subject, null=True, on_delete=models.SET_NULL)
+    
+    class Meta:
+        unique_together = ('number', 'subject')
+        ordering = ['subject']
+        # order_with_respect_to = 'subject'
+
+    def __str__(self):
+        return f"{self.subject}/{self.number}"
 
 
 class Level(models.Model):
     name = models.CharField(max_length=256)
     rank = models.IntegerField(unique=True)
     description = models.CharField(max_length=128, null=True, blank=True)
-    subjects = models.ManyToManyField('Subject', related_name='levels', blank=True)
+    # subjects = models.ManyToManyField('Subject', related_name='levels', blank=True)
+    papers = models.ManyToManyField('Paper', related_name='levels', blank=True)
 
     def __str__(self):
         return self.name
@@ -65,11 +99,11 @@ class ClassRoom(models.Model):
 
 class Teacher(models.Model):
     name = models.CharField(max_length=256)
+    picture = models.ImageField(upload_to=teacher_picture_upload_loacation, storage=OverwiteStorageSystem, null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     
     def __str__(self):
         return self.name
-
 
 
 class Student(models.Model):
@@ -77,6 +111,7 @@ class Student(models.Model):
     last_name = models.CharField(max_length=64)
     middle_name = models.CharField(max_length=64, null=True, blank=True)
     dob = models.DateField()
+    picture = models.ImageField(upload_to=student_picture_upload_loacation, storage=OverwiteStorageSystem, null=True, blank=True)
     class_room = models.ForeignKey(ClassRoom, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
@@ -85,14 +120,13 @@ class Student(models.Model):
 
 class Assessment(models.Model):
     date = models.DateField()
-    term = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(3)])
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    # level = models.ForeignKey(Level, on_delete=models.SET_NULL, null=True)
+    paper = models.ForeignKey(Paper, on_delete=models.SET_NULL, null=True)
     class_room = models.ForeignKey(ClassRoom, on_delete=models.SET_NULL, null=True)
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    teacher = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True)
+    period = models.ForeignKey(Period, on_delete=models.SET_NULL, null=True, default=Period.objects.first().id)
 
     def __str__(self):
-        return f'{self.class_room} {self.subject}'
+        return f'{self.class_room} {self.paper}'
 
 
 
@@ -149,13 +183,13 @@ class Grade(models.Model):
         
 
 
-class TeacherClassRoomSubject(models.Model):
+class TeacherClassRoomPaper(models.Model):
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    paper = models.ForeignKey(Paper, on_delete=models.CASCADE)
     
     class Meta:
-        unique_together = ('teacher', 'class_room', 'subject')
+        unique_together = ('teacher', 'class_room', 'paper')
 
 
 # class TeacherSubjects(models.Model):
