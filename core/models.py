@@ -1,6 +1,29 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
+
+from utils import OverwiteStorageSystem
+
+
+SINGLE_ENTRY_VALIDATOR = [MinValueValidator(1), MaxValueValidator(1)]
+
+def entity_logo_upload_loacation(instance, filename):
+    _, extension = filename.split('.')
+    return f'entities/pictures/{instance.id}.{extension}'
+
 
 # Create your models here.
+class Entity(models.Model):
+	id = models.IntegerField(primary_key=True, default=1, validators=SINGLE_ENTRY_VALIDATOR)
+	name = models.CharField(max_length=128)
+	location = models.CharField(max_length=256)
+	telephone = models.CharField(max_length=16, null=True, blank=True)
+	email = models.EmailField(null=True, blank=True)
+	logo = models.ImageField(upload_to=entity_logo_upload_loacation, storage=OverwiteStorageSystem, null=True, blank=True)
+
+	def __str__(self):
+		return self.name
+
+
 class TimeStampedModel(models.Model):
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)

@@ -1,3 +1,4 @@
+from .entity import *
 from .user import *
 from .department import *
 from .metric import *

@@ -123,7 +123,7 @@ class Assessment(models.Model):
     paper = models.ForeignKey(Paper, on_delete=models.SET_NULL, null=True)
     class_room = models.ForeignKey(ClassRoom, on_delete=models.SET_NULL, null=True)
     teacher = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True)
-    period = models.ForeignKey(Period, on_delete=models.SET_NULL, null=True, default=Period.objects.first().id)
+    period = models.ForeignKey(Period, on_delete=models.SET_NULL, null=True, default=lambda:Period.objects.last())
 
     def __str__(self):
         return f'{self.class_room} {self.paper}'
