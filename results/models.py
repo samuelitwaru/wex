@@ -4,6 +4,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
+from core.models import TimeStampedModel
 
 from utils import OverwiteStorageSystem, range_with_floats
 
@@ -28,8 +29,11 @@ def teacher_picture_upload_loacation(instance, filename):
     _, extension = filename.split('.')
     return f'teachers/pictures/{instance.id}.{extension}'
 
+def period_default():
+    return Period.objects.latest('created_at')
 
-class Period(models.Model):
+
+class Period(TimeStampedModel):
     name = models.CharField(max_length=128)
     start = models.DateField()
     stop = models.DateField()
@@ -39,7 +43,7 @@ class Period(models.Model):
 
 
 # Create your models here.
-class Subject(models.Model):
+class Subject(TimeStampedModel):
     code = models.CharField(max_length=16, null=True)
     name = models.CharField(max_length=128)
     abbr = models.CharField(max_length=8, null=True, blank=True)
@@ -48,7 +52,7 @@ class Subject(models.Model):
         return f"{self.code} {self.name}"
 
 
-class Paper(models.Model):
+class Paper(TimeStampedModel):
     number = models.IntegerField()
     description = models.CharField(max_length=128, null=True, blank=True)
     subject = models.ForeignKey(Subject, null=True, on_delete=models.SET_NULL)
@@ -62,7 +66,7 @@ class Paper(models.Model):
         return f"{self.subject}/{self.number}"
 
 
-class Level(models.Model):
+class Level(TimeStampedModel):
     name = models.CharField(max_length=256)
     rank = models.IntegerField(unique=True)
     description = models.CharField(max_length=128, null=True, blank=True)
@@ -73,7 +77,7 @@ class Level(models.Model):
         return self.name
 
 
-class ClassRoom(models.Model):
+class ClassRoom(TimeStampedModel):
     name = models.CharField(max_length=64)
     stream = models.CharField(max_length=64, null=True, blank=True)
     level = models.ForeignKey(Level, on_delete=models.SET_NULL, null=True, blank=True)
@@ -97,7 +101,7 @@ class ClassRoom(models.Model):
     #                     raise ValidationError(f'Assessment "{assessment}" selected is of a different class room level.')
 
 
-class Teacher(models.Model):
+class Teacher(TimeStampedModel):
     name = models.CharField(max_length=256)
     picture = models.ImageField(upload_to=teacher_picture_upload_loacation, storage=OverwiteStorageSystem, null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
@@ -106,7 +110,7 @@ class Teacher(models.Model):
         return self.name
 
 
-class Student(models.Model):
+class Student(TimeStampedModel):
     first_name = models.CharField(max_length=64)
     last_name = models.CharField(max_length=64)
     middle_name = models.CharField(max_length=64, null=True, blank=True)
@@ -118,19 +122,19 @@ class Student(models.Model):
         return f'{self.first_name} {self.last_name}'
 
 
-class Assessment(models.Model):
+class Assessment(TimeStampedModel):
     date = models.DateField()
     paper = models.ForeignKey(Paper, on_delete=models.SET_NULL, null=True)
     class_room = models.ForeignKey(ClassRoom, on_delete=models.SET_NULL, null=True)
     teacher = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True)
-    period = models.ForeignKey(Period, on_delete=models.SET_NULL, null=True, default=lambda:Period.objects.last())
+    period = models.ForeignKey(Period, on_delete=models.SET_NULL, null=True, default=period_default)
 
     def __str__(self):
         return f'{self.class_room} {self.paper}'
 
 
 
-class Score(models.Model):
+class Score(TimeStampedModel):
     assessment = models.ForeignKey(Assessment, on_delete=models.CASCADE)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     mark = models.DecimalField(max_digits=3, decimal_places=0, default=0, validators=PERCENTAGE_VALIDATOR)
@@ -142,7 +146,7 @@ class Score(models.Model):
         return f"{self.student} {self.assessment} - {self.mark}"
 
 
-class GradingSystem(models.Model):
+class GradingSystem(TimeStampedModel):
     name = models.CharField(max_length=128)
     description = models.CharField(max_length=512)
     is_default = models.BooleanField(default=False)
@@ -151,7 +155,7 @@ class GradingSystem(models.Model):
         return self.name
 
 
-class Grade(models.Model):
+class Grade(TimeStampedModel):
     category = models.CharField(max_length=64)
     min_mark = models.DecimalField(max_digits=3, decimal_places=0, default=0, validators=PERCENTAGE_VALIDATOR)
     max_mark = models.DecimalField(max_digits=3, decimal_places=0, default=0, validators=PERCENTAGE_VALIDATOR)
@@ -183,7 +187,7 @@ class Grade(models.Model):
         
 
 
-class TeacherClassRoomPaper(models.Model):
+class TeacherClassRoomPaper(TimeStampedModel):
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
     paper = models.ForeignKey(Paper, on_delete=models.CASCADE)
@@ -192,17 +196,17 @@ class TeacherClassRoomPaper(models.Model):
         unique_together = ('teacher', 'class_room', 'paper')
 
 
-# class TeacherSubjects(models.Model):
+# class TeacherSubjects(TimeStampedModel):
 # 	teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
 # 	subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
 
 
-# class StudentSubjects(models.Model):
+# class StudentSubjects(TimeStampedModel):
 # 	student = models.ForeignKey(Student, on_delete=models.CASCADE)
 # 	subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
 
 
-# class SubjectLevels(models.Model):
+# class SubjectLevels(TimeStampedModel):
 # 	level = models.ForeignKey(Level, on_delete=models.CASCADE)
 # 	subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
 

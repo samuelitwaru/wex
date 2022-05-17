@@ -14,7 +14,6 @@ class StudentViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         if params:
             queryset = queryset.filter(**params.dict())
-
         return queryset
 
     @action(detail=True, methods=['POST'], name='upload_picture', url_path='picture/upload')
