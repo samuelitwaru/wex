@@ -70,7 +70,7 @@ class Level(TimeStampedModel):
     name = models.CharField(max_length=256)
     rank = models.IntegerField(unique=True)
     description = models.CharField(max_length=128, null=True, blank=True)
-    # subjects = models.ManyToManyField('Subject', related_name='levels', blank=True)
+    subjects = models.ManyToManyField('Subject', related_name='levels', blank=True)
     papers = models.ManyToManyField('Paper', related_name='levels', blank=True)
 
     def __str__(self):

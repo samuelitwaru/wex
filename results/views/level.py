@@ -17,12 +17,16 @@ class LevelViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(**params.dict())
         count = queryset.count()
         return Response({'count':count})
-        
+
+    
+
     @action(detail=True, methods=['PUT'], name='add_papers', url_path='papers/add')
     def add_papers(self, request, *args, **kwargs):
         level = Level.objects.filter(id=kwargs.get('pk')).first()
         papers = Paper.objects.filter(pk__in=request.data)
+        subject = papers.first().subject
         level.papers.add(*papers)
+        level.subjects.add(subject)
         serializer = self.get_serializer(level)
         return Response(serializer.data)
     
@@ -30,6 +34,9 @@ class LevelViewSet(viewsets.ModelViewSet):
     def remove_papers(self, request, *args, **kwargs):
         level = Level.objects.filter(id=kwargs.get('pk')).first()
         papers = Paper.objects.filter(pk__in=request.data)
+        subject = papers.first().subject
         level.papers.remove(*papers)
+        if not level.papers.filter(subject=subject).first():
+            level.subjects.remove(subject)
         serializer = self.get_serializer(level)
         return Response(serializer.data)
