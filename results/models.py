@@ -55,12 +55,11 @@ class Subject(TimeStampedModel):
 class Paper(TimeStampedModel):
     number = models.IntegerField()
     description = models.CharField(max_length=128, null=True, blank=True)
-    subject = models.ForeignKey(Subject, null=True, on_delete=models.SET_NULL)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     
     class Meta:
         unique_together = ('number', 'subject')
         ordering = ['subject']
-        # order_with_respect_to = 'subject'
 
     def __str__(self):
         return f"{self.subject}/{self.number}"
@@ -124,10 +123,13 @@ class Student(TimeStampedModel):
 
 class Assessment(TimeStampedModel):
     date = models.DateField()
-    paper = models.ForeignKey(Paper, on_delete=models.SET_NULL, null=True)
+    paper = models.ForeignKey(Paper, on_delete=models.CASCADE)
     class_room = models.ForeignKey(ClassRoom, on_delete=models.SET_NULL, null=True)
     teacher = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True)
     period = models.ForeignKey(Period, on_delete=models.SET_NULL, null=True, default=period_default)
+
+    class Meta:
+        ordering = ['-id']
 
     def __str__(self):
         return f'{self.class_room} {self.paper}'
