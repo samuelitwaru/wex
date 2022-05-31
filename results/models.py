@@ -102,6 +102,7 @@ class ClassRoom(TimeStampedModel):
 
 class Teacher(TimeStampedModel):
     name = models.CharField(max_length=256)
+    initials = models.CharField(max_length=8)
     picture = models.ImageField(upload_to=teacher_picture_upload_loacation, storage=OverwiteStorageSystem, null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     
