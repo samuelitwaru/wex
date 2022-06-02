@@ -14,12 +14,13 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from core.urls import *
 from . import router
 
+# add urls for app if the app in installed
 if 'procurement' in settings.INSTALLED_APPS: from procurement.urls import *
 if 'results' in settings.INSTALLED_APPS: from results.urls import *
 
@@ -29,6 +30,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
 ]
+
+# add accounts urls if 'accounts' app in installed
+if 'accounts' in settings.INSTALLED_APPS: 
+    urlpatterns.append(re_path("^accounting/", include("accounts.urls")))
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
