@@ -223,3 +223,8 @@ class TeacherClassRoomPaper(TimeStampedModel):
 #             levels = list(map(lambda class_room: class_room.level, class_rooms))
 #             if levels.count(levels[0]) != len(levels):
 #                 raise ValidationError("Class rooms must be from the same level")
+
+
+class Setting(models.Model):
+    file = models.FilePathField("students/pictures/")
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
