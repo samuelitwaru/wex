@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from core.models import TimeStampedModel
+from results.utils import DEFAULT_USER_PREFS
 
 from utils import OverwiteStorageSystem, range_with_floats
 
@@ -32,6 +33,8 @@ def teacher_picture_upload_loacation(instance, filename):
 def period_default():
     return Period.objects.latest('created_at')
 
+def default_user_prefs():
+    return DEFAULT_USER_PREFS
 
 class Period(TimeStampedModel):
     name = models.CharField(max_length=128)
@@ -104,7 +107,7 @@ class Teacher(TimeStampedModel):
     name = models.CharField(max_length=256)
     initials = models.CharField(max_length=8)
     picture = models.ImageField(upload_to=teacher_picture_upload_loacation, storage=OverwiteStorageSystem, null=True, blank=True)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True)
     
     def __str__(self):
         return self.name
@@ -199,32 +202,6 @@ class TeacherClassRoomPaper(TimeStampedModel):
         unique_together = ('teacher', 'class_room', 'paper')
 
 
-# class TeacherSubjects(TimeStampedModel):
-# 	teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
-# 	subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-
-
-# class StudentSubjects(TimeStampedModel):
-# 	student = models.ForeignKey(Student, on_delete=models.CASCADE)
-# 	subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-
-
-# class SubjectLevels(TimeStampedModel):
-# 	level = models.ForeignKey(Level, on_delete=models.CASCADE)
-# 	subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-
-
-# def clean(self):
-#         # pass
-#         class_rooms = self.class_rooms.all()
-#         # make sure class rooms selected belong to the same level
-#         print(class_rooms)
-#         if len(class_rooms) > 1:
-#             levels = list(map(lambda class_room: class_room.level, class_rooms))
-#             if levels.count(levels[0]) != len(levels):
-#                 raise ValidationError("Class rooms must be from the same level")
-
-
-class Setting(models.Model):
-    file = models.FilePathField("students/pictures/")
+class UserPref(models.Model):
+    pref = models.JSONField(default=default_user_prefs)
     user = models.OneToOneField(User, on_delete=models.CASCADE)

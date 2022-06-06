@@ -1,3 +1,5 @@
+from .user import *
+from .user_pref import *
 from .period import *
 from .subject import *
 from .paper import *

@@ -19,6 +19,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from core.urls import *
 from . import router
+from core.views import AuthLoginView, AuthLogoutView
 
 # add urls for app if the app in installed
 if 'procurement' in settings.INSTALLED_APPS: from procurement.urls import *
@@ -29,6 +30,8 @@ if 'results' in settings.INSTALLED_APPS: from results.urls import *
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
+    path('api/auth/login/', AuthLoginView.as_view()),
+    path('api/auth/logout/', AuthLogoutView.as_view()),
 ]
 
 # add accounts urls if 'accounts' app in installed
@@ -37,3 +40,5 @@ if 'accounts' in settings.INSTALLED_APPS:
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+

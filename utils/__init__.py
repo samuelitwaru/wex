@@ -1,6 +1,6 @@
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
-
+from .authentication import *
 
 class OverwiteStorageSystem(FileSystemStorage):
     

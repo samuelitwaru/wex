@@ -1,9 +1,10 @@
 from wex import router
 from .views import *
+from rest_framework.authtoken import views
 
 
-
-
+router.register(r'users', UserViewSet)
+router.register(r'user-prefs', UserPrefViewSet)
 router.register(r'periods', PeriodViewSet)
 router.register(r'assessments', AssessmentViewSet)
 router.register(r'teachers', TeacherViewSet)
@@ -17,8 +18,3 @@ router.register(r'grades', GradeViewSet)
 router.register(r'scores', ScoreViewSet)
 router.register(r'teacher-class-room-papers', TeacherClassRoomPaperViewSet)
 router.register(r'assessments/(?P<assessment_id>\d+)/scores', ScoreViewSet, basename='scores')
-# print(router.urls)
-
-# router.urls += [
-#     url(r'assessments/?P<pk>[^/.]+/scores', ScoreViewSet.as_view())
-# ]
