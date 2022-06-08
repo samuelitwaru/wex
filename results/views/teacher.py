@@ -3,6 +3,8 @@ from ..models import Teacher
 from ..serializers import TeacherSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.contrib.auth.models import User
+from core.tasks import send_welcome_mail
 
 
 class TeacherViewSet(viewsets.ModelViewSet):
@@ -34,3 +36,21 @@ class TeacherViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(**params.dict())
         count = queryset.count()
         return Response({'count':count})
+
+    
+    @action(detail=True, methods=['POST'], name='set_user', url_path='user')
+    def set_user(self, request, *args, **kwargs):
+        teacher = super().get_queryset().filter(id=kwargs.get('pk')).first()
+        user = teacher.user
+        data = request.data
+        if user:
+            user.username = data.get('username')
+            user.email = data.get('email') 
+            user.save()
+        else:
+            user = User.objects.create(**data)
+            teacher.user = user
+            teacher.save()
+        serializer = self.get_serializer(teacher)
+        send_welcome_mail.delay(user.username)
+        return Response(serializer.data)

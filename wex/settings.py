@@ -23,8 +23,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'ey(64m&#l9ym6r3)uxv#8uq=ck38ok*^%jq!c5e&-et9_q%wgp'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
 DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -69,7 +69,7 @@ ROOT_URLCONF = 'wex.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates/')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -120,6 +120,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
     )
 }
@@ -157,3 +158,20 @@ STATIC_URL = '/static/'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT =  os.path.join(BASE_DIR, 'media/')
+
+
+# Email settings
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'amobitinfo@gmail.com'
+EMAIL_HOST_PASSWORD = 'wnocbulgkiatkucc'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+
+# celery
+CELERY_BROKER_URL = "redis://localhost:6379/0"
+CELERY_BROKER_BACKEND = "redis://localhost:6379/1"
