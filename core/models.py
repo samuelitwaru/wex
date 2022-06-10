@@ -8,8 +8,9 @@ from utils import OverwiteStorageSystem
 SINGLE_ENTRY_VALIDATOR = [MinValueValidator(1), MaxValueValidator(1)]
 
 def entity_logo_upload_loacation(instance, filename):
-    _, extension = filename.split('.')
-    return f'entities/pictures/{instance.id}.{extension}'
+	print(filename)
+	_, extension = filename.split('.')
+	return f'entities/pictures/{instance.id}.{extension}'
 
 
 # Create your models here.

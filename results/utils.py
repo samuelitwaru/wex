@@ -15,3 +15,10 @@ DEFAULT_USER_PREFS = {
         "classTeacher": True,
     }
 }
+
+def grade(grade_tuple=(8,8,3)):
+    # get worst
+    worst = max(grade_tuple)
+    # get how may times worst appears
+    n_worst = grade_tuple.count(worst)
+    

@@ -10,6 +10,7 @@ class EntityViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['POST'], name='upload_logo', url_path='logo/upload')
     def upload_logo(self, request, *args, **kwargs):
+        print(request.FILES)
         logo = request.FILES['picture']
         print('>>>>>>>>>>', kwargs.get('pk'))
         entity = super().get_queryset().filter(id=kwargs.get('pk')).first()
