@@ -6,6 +6,8 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from core.models import TimeStampedModel
 from results.utils import DEFAULT_USER_PREFS
+from django_resized import ResizedImageField
+
 
 from utils import OverwiteStorageSystem, range_with_floats
 
@@ -106,7 +108,7 @@ class ClassRoom(TimeStampedModel):
 class Teacher(TimeStampedModel):
     name = models.CharField(max_length=256)
     initials = models.CharField(max_length=8)
-    picture = models.ImageField(upload_to=teacher_picture_upload_loacation, storage=OverwiteStorageSystem, null=True, blank=True)
+    picture = ResizedImageField(upload_to=teacher_picture_upload_loacation, storage=OverwiteStorageSystem, null=True, blank=True)
     user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True)
     
     def __str__(self):
@@ -118,7 +120,7 @@ class Student(TimeStampedModel):
     last_name = models.CharField(max_length=64)
     middle_name = models.CharField(max_length=64, null=True, blank=True)
     dob = models.DateField()
-    picture = models.ImageField(upload_to=student_picture_upload_loacation, storage=OverwiteStorageSystem, null=True, blank=True)
+    picture = ResizedImageField(upload_to=student_picture_upload_loacation, storage=OverwiteStorageSystem, null=True, blank=True)
     class_room = models.ForeignKey(ClassRoom, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):

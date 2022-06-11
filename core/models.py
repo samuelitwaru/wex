@@ -3,6 +3,7 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from utils import OverwiteStorageSystem
+from django_resized import ResizedImageField
 
 
 SINGLE_ENTRY_VALIDATOR = [MinValueValidator(1), MaxValueValidator(1)]
@@ -20,7 +21,7 @@ class Entity(models.Model):
 	location = models.CharField(max_length=256)
 	telephone = models.CharField(max_length=16, null=True, blank=True)
 	email = models.EmailField(null=True, blank=True)
-	logo = models.ImageField(upload_to=entity_logo_upload_loacation, storage=OverwiteStorageSystem, null=True, blank=True)
+	logo = ResizedImageField(upload_to=entity_logo_upload_loacation, storage=OverwiteStorageSystem, null=True, blank=True)
 
 	def __str__(self):
 		return self.name
