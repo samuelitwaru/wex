@@ -21,6 +21,11 @@ LEVEL_CHOICES = [
     ("S.6", "S.6"),
 ]
 
+GENDER_CHOICES = (
+        ('M', 'Male'),
+        ('F', 'Female'),
+    )
+
 PERCENTAGE_VALIDATOR = [MinValueValidator(0), MaxValueValidator(100)]
 
 
@@ -119,6 +124,7 @@ class Student(TimeStampedModel):
     first_name = models.CharField(max_length=64)
     last_name = models.CharField(max_length=64)
     middle_name = models.CharField(max_length=64, null=True, blank=True)
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     dob = models.DateField()
     picture = ResizedImageField(upload_to=student_picture_upload_loacation, storage=OverwiteStorageSystem, null=True, blank=True)
     class_room = models.ForeignKey(ClassRoom, on_delete=models.SET_NULL, null=True, blank=True)
