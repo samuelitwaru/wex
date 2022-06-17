@@ -169,6 +169,8 @@ class SubjectReport:
             )
     def __set_points(self):
         mapper = {"A":6,"B":5,"C":4,"D":3,"E":2,"O":1,"F":0,}
+        if self.subject.is_subsidiary:
+            mapper = {"A":1,"B":1,"C":1,"D":1,"E":1,"O":1,"F":0,}
         self.points = mapper[self.letter_grade]
     def set_values(self):
         self.__set_average()

@@ -273,8 +273,8 @@ class UserPref(models.Model):
 class Report(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     period = models.ForeignKey(Period, on_delete=models.CASCADE, default=period_default)
-    class_teacher_comment = models.CharField(max_length=512)
-    head_teacher_comment = models.CharField(max_length=512)
+    class_teacher_comment = models.CharField(max_length=512, blank=True)
+    head_teacher_comment = models.CharField(max_length=512, blank=True)
 
     class Meta:
         unique_together = ('student', 'period')

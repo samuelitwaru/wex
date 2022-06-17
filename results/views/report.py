@@ -8,21 +8,20 @@ from ..serializers import ReportSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from ..filters import ReportFilter
+from django_filters import rest_framework as filters
+
 
 
 class ReportViewSet(viewsets.ModelViewSet):
     queryset = Report.objects.all()
     serializer_class = ReportSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filter_class = ReportFilter
 
     def get_queryset(self):
-        params = self.request.query_params
         queryset = super().get_queryset()
         f = ReportFilter(self.request.GET, queryset=queryset)
-        print(dir(f))
-        print(f.queryset)
-        if params:
-            queryset = queryset.filter(**params.dict())
-        return queryset
+        return f.queryset
 
     @action(detail=False, methods=['GET'], name='get_count', url_path='count')
     def get_count(self, request, *args, **kwargs):
@@ -47,4 +46,12 @@ class ReportViewSet(viewsets.ModelViewSet):
         report = compute_student_report(student_id, grading_system, period)
         serializer = SubjectReportSerializer(report, many=True)
         return Response(serializer.data)
-        
+    
+    @action(detail=False, methods=['PUT'], name='update_report_comment', url_path='comment')
+    def update_report_comment(self, request, *args, **kwargs):
+        data = request.data
+        reports = Report.objects.filter(id__in=data.get('reports'))
+        del data['reports']
+        reports.update(**data)
+        serializer = self.get_serializer(reports, many=True)
+        return Response(serializer.data)
