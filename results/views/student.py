@@ -1,5 +1,5 @@
 from rest_framework import viewsets
-from ..models import Student
+from ..models import Student, Subject
 from ..serializers import StudentSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -27,10 +27,25 @@ class StudentViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['GET'], name='get_count', url_path='count')
     def get_count(self, request, *args, **kwargs):
-        print(request.META.get('HTTP_AUTHORIZATION'))
         params = self.request.query_params
         queryset = super().get_queryset()
         if params:
             queryset = queryset.filter(**params.dict())
         count = queryset.count()
         return Response({'count':count})
+    
+    @action(detail=True, methods=['PUT'], name='add_subjects', url_path='subjects/add')
+    def add_subjects(self, request, *args, **kwargs):
+        student = Student.objects.filter(id=kwargs.get('pk')).first()
+        subjects = Subject.objects.filter(pk__in=request.data)
+        student.subjects.add(*subjects)
+        serializer = self.get_serializer(student)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['PUT'], name='remove_subjects', url_path='subjects/remove')
+    def remove_subjects(self, request, *args, **kwargs):
+        student = Student.objects.filter(id=kwargs.get('pk')).first()
+        subjects = Subject.objects.filter(pk__in=request.data)
+        student.subjects.remove(*subjects)
+        serializer = self.get_serializer(student)
+        return Response(serializer.data)
