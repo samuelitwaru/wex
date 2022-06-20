@@ -1,4 +1,6 @@
 from rest_framework import viewsets
+
+from utils import get_host_name
 from ..models import Teacher
 from ..serializers import TeacherSerializer
 from rest_framework.decorators import action
@@ -54,6 +56,6 @@ class TeacherViewSet(viewsets.ModelViewSet):
             teacher.save()
         token, created = Token.objects.get_or_create(user=user)
         serializer = self.get_serializer(teacher)
-        host = request.get_host()
+        host = get_host_name(request)
         send_welcome_mail.delay(host, user.username, token.key)
         return Response(serializer.data)
