@@ -1,0 +1,30 @@
+{% load static %}
+
+<html>
+	<head>
+		<meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta http-equiv="x-ua-compatible" content="ie=edge" />
+        <title>Wex ERP</title>
+
+		{% comment %} <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.min.css' %}">
+		<link rel="stylesheet" type="text/css" href="{% static 'css/tempusdominus-bootstrap-4.min.css' %}">
+		<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}"> {% endcomment %}
+		<link rel="stylesheet" type="text/css" href="{% static 'css/font-awesome.min.css' %}">
+        <link rel="stylesheet" type="text/css" href="{% static 'css/mdb.min.css' %}">
+
+		{% comment %} <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script> {% endcomment %}
+	</head>
+
+	<body>
+		{% include 'index/alert.html' %}
+		{% block body %}
+		{% endblock %}
+		{% comment %} <script src="{% static 'js/popper.min.js' %}"></script>
+		<script src="{% static 'js/bootstrap.min.js' %}"></script> {% endcomment %}
+        <!-- MDB -->
+        <script type="text/javascript" src="{% static 'js/mdb.min.js' %}"></script>
+        <!-- Custom scripts -->
+        <script type="text/javascript"></script>
+	</body>
+</html>

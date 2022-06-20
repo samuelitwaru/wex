@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load app_tags %}
+
+{% block body %}
+    <section class="vh-100">
+        <div class="container-fluid h-custom">
+            <div class="row d-flex justify-content-center align-items-center h-100 p-2">
+                <div class="col-md-9 col-lg-6 border">
+                    <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp" class="img-fluid" alt="Sample image">
+                </div>
+
+                <div class="col-md-8 col-lg-6 borde">
+                    <form class="m-0" method="POST" action="" align="left">
+                        <div class="d-flex flex-row align-items-center justify-content-center justify-content-lg-start">
+                        <p class="lead fw-normal mb-0 me-3">Setup Your Account</p>
+                        </div>
+
+                        {% csrf_token %}
+
+                        {% render_field set_user_form.username class='form-control' %}
+                        {% render_field set_user_form.password class='form-control' %}
+                        {% render_field set_user_form.confirm_password class='form-control' %}
+
+                        <div align="center" class="bg-white border-top p-3 mt-3 mb-0">
+                        <button class="btn btn-primary">Submit <span class="fa fa-check"></span></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

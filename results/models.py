@@ -71,7 +71,7 @@ class Subject(TimeStampedModel):
     created_from_system = models.BooleanField(default=True)
     is_subsidiary = models.BooleanField(null=True, blank=True)
     is_selectable = models.BooleanField(default=False)
-    no_papers = models.IntegerField()
+    no_papers = models.IntegerField(default=1)
     field = models.CharField(max_length=16, choices=SUBJECT_FIELD_CHOICES)
     level_group = models.ForeignKey('LevelGroup', on_delete=models.CASCADE)
 
@@ -162,9 +162,9 @@ class Student(TimeStampedModel):
 class Assessment(TimeStampedModel):
     date = models.DateField()
     paper = models.ForeignKey(Paper, on_delete=models.CASCADE)
-    class_room = models.ForeignKey(ClassRoom, on_delete=models.SET_NULL, null=True)
-    teacher = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True)
-    period = models.ForeignKey(Period, on_delete=models.SET_NULL, null=True, default=period_default)
+    class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    period = models.ForeignKey(Period, on_delete=models.CASCADE, default=period_default)
 
     class Meta:
         ordering = ['-id']

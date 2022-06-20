@@ -1,13 +1,17 @@
 from rest_framework import viewsets
+
+from permissions import HasGroup
 from ..models import Student, Subject
 from ..serializers import StudentSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from functools import partial
 
 
 class StudentViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
+    # permission_classes = [partial(HasGroup, 'admin')]
 
     def get_queryset(self):
         params = self.request.query_params

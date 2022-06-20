@@ -135,7 +135,8 @@ def compute_subject_grade(aggregates=[8,8,3]):
 
 
 def compute_student_report(student_id, grading_system, period):
-    report = []
+    report = models.Report.objects.filter(period=period, student_id=student_id).first()
+    computed_report = ComputedReport(report, [])
     student = models.Student.objects.filter(id=student_id).first()
     subjects = models.Subject.objects.filter(is_selectable=False, level_group=student.class_room.level.level_group).union(student.subjects.all())
     period = models.Period.objects.latest()
@@ -148,9 +149,52 @@ def compute_student_report(student_id, grading_system, period):
             paper_report = PaperReport(grading_system, paper, scores)
             subject_report.papers.append(paper_report)
         subject_report.set_values()
-        report.append(subject_report)
-    return report
+        computed_report.add_subject_report(subject_report)
+    computed_report.set_values()
+    return computed_report
 
+
+class ComputedReport:
+    subject_reports = []
+    points = 0
+    aggregates = 0
+    average = 0
+    
+    def __init__(self, report, subject_reports=[]):
+        self.report = report
+        self.subject_reports = subject_reports
+
+    def add_subject_report(self, subject_report):
+        self.subject_reports.append(subject_report)
+    
+    def __set_points(self):
+        self.points = sum([subj.points for subj in self.subject_reports])
+    
+    def __set_aggregates(self):
+        compulsories = []
+        optionals = []
+        for subj in self.subject_reports:
+            if subj.subject.is_selectable: compulsories.append(subj.aggregate)
+            else: optionals.append(subj.aggregate)
+        compulsories.sort()
+        optionals.sort()
+        if len(optionals) and len(optionals) >= 2:
+            compulsories.extend(optionals[:2])
+        else:
+            compulsories.extend(optionals)
+        compulsories.sort()
+        if len(compulsories) >= 8:
+            self.aggregates = sum(compulsories[:8])
+        else:
+            self.aggregates = sum(compulsories)
+
+    def __set_average(self):
+        self.average = sum([subj.average for subj in self.subject_reports])/len(self.subject_reports)
+    
+    def set_values(self):
+        self.__set_average()
+        self.__set_aggregates()
+        self.__set_points()
 
 class SubjectReport:
     subject = None
@@ -209,6 +253,17 @@ class PaperReport:
         elif self.score >= 2.5 and self.score <= 3:
             return "Outstanding"
     
-
+def run():
+	c = [random.randint(1,9) for i in range(0,7)]
+	o = [random.randint(1,9) for i in range(0,3)]
+	o.sort()
+	c.sort()
+	print(c);print(o)
+	y = c[-2:]
+	x = o[:2]
+	print(y);print(x)
+	for i in [-1,-2]:
+		if x[i] < y[i]:print(c.pop(-1))
+	print(c+o)
 
 # from results import utils; utils.compute_student_report(18)

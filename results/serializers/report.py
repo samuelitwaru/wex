@@ -28,3 +28,11 @@ class SubjectReportSerializer(serializers.Serializer):
     aggregate = serializers.IntegerField()
     letter_grade = serializers.CharField()
     points = serializers.IntegerField()
+
+
+class ComputedReportSerializer(serializers.Serializer):
+    report = ReportSerializer()
+    subject_reports = SubjectReportSerializer(many=True)
+    average = serializers.IntegerField()
+    aggregates = serializers.IntegerField()
+    points = serializers.IntegerField()

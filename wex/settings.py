@@ -23,8 +23,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'ey(64m&#l9ym6r3)uxv#8uq=ck38ok*^%jq!c5e&-et9_q%wgp'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
 DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -78,6 +78,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            'libraries': {
+                "app_tags" : "templatetags.app_tags"
+            }
         },
     },
 ]
@@ -154,6 +157,7 @@ STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD='django.db.models.AutoField'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static/')]
 STATIC_URL = '/static/'
 
 MEDIA_URL = '/media/'

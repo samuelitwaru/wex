@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf import settings
+from django.views.static import serve
 from django.conf.urls.static import static
 from core.urls import *
 from . import router
@@ -29,6 +30,7 @@ if 'results' in settings.INSTALLED_APPS: from results.urls import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', include('core.urls')),
     path('api/', include(router.urls)),
     path('api/auth/login/', AuthLoginView.as_view()),
     path('api/auth/logout/', AuthLogoutView.as_view()),
@@ -40,5 +42,7 @@ if 'accounts' in settings.INSTALLED_APPS:
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-
+else:
+    urlpatterns.append(
+        re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT})
+    )

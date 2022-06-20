@@ -1,16 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <title>Bootstrap Example</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-</head>
-<body>
-    <h2 styl>SET PASSWORD</h2>
-    <p>Hello {{user}}</p>
-    <p>Click on the following link to proceed:</p>
-    <a href="www.google.com" class='btn btn-primary'>Set Password</a>
-</body>
+{% extends "emails/base.html" %}
+
+{% block body %}
+    <h2 styl>SET UP YOUR ACCOUNT</h2>
+    <p>Hello,</p>
+    <p>Warm greeting from Amobit Technologies, Uganda. Please take a few minutes to setup your account with WEX ERP.</p>
+    <a class="btn btn-primary"  href="{{host}}{% url 'core:set_user' token_key=token_key %}">Set Up Account</a>
+    <p>Please ignore this mail if you do not recognise it.</p>
+    <p>Best Regards!</p>
+
+{% endblock %}

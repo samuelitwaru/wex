@@ -1,6 +1,5 @@
 from rest_framework import viewsets
-from results.serializers import grading_system
-from results.serializers.report import SubjectReportSerializer
+from results.serializers.report import ComputedReportSerializer
 
 from results.utils import compute_student_report
 from ..models import GradingSystem, Period, Report
@@ -44,14 +43,40 @@ class ReportViewSet(viewsets.ModelViewSet):
             
         student_id = kwargs.get('student_id')
         report = compute_student_report(student_id, grading_system, period)
-        serializer = SubjectReportSerializer(report, many=True)
+        serializer = ComputedReportSerializer(report)
         return Response(serializer.data)
+    
+    @action(detail=True, methods=['GET'], name='get_report_result', url_path='result') 
+    def get_report_result(self, request, pk, *args, **kwargs):
+        params = self.request.query_params
+        grading_system = GradingSystem.objects.filter(id=params.get('grading_system')).first()
+        period = Period.objects.filter(id=params.get('period')).first()
+        if not grading_system:
+            grading_system = GradingSystem.objects.first()
+        if not period:
+            period = Period.objects.latest()
+        
+        report = Report.objects.get(id=pk)
+        student_id = report.student_id
+        report = compute_student_report(student_id, grading_system, period)
+        return Response({
+            "points": sum([subj.points for subj in report])
+        })
     
     @action(detail=False, methods=['PUT'], name='update_report_comment', url_path='comment')
     def update_report_comment(self, request, *args, **kwargs):
         data = request.data
-        reports = Report.objects.filter(id__in=data.get('reports'))
+        queryset1 = Report.objects.filter(id__in=data.get('reports'))
+        queryset = queryset1
+        overwrite = data.get('overwrite')
         del data['reports']
-        reports.update(**data)
-        serializer = self.get_serializer(reports, many=True)
+        del data['overwrite']
+        if not data.get('class_teacher_comment'): 
+            del data['class_teacher_comment']
+            if not overwrite: queryset = queryset.filter(class_teacher_comment="")
+        if not data.get('head_teacher_comment'): 
+            del data['head_teacher_comment']
+            if not overwrite: queryset = queryset.filter(head_teacher_comment="")
+        queryset.update(**data)
+        serializer = self.get_serializer(queryset1, many=True)
         return Response(serializer.data)

@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from core.tasks import send_welcome_mail
+from rest_framework.authtoken.models import Token
 
 
 class TeacherViewSet(viewsets.ModelViewSet):
@@ -51,6 +52,8 @@ class TeacherViewSet(viewsets.ModelViewSet):
             user = User.objects.create(**data)
             teacher.user = user
             teacher.save()
+        token, created = Token.objects.get_or_create(user=user)
         serializer = self.get_serializer(teacher)
-        send_welcome_mail.delay(user.username)
+        host = request.get_host()
+        send_welcome_mail.delay(host, user.username, token.key)
         return Response(serializer.data)
