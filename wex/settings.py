@@ -177,8 +177,8 @@ EMAIL_USE_TLS = True
 
 
 # celery
-CELERY_BROKER_URL = "redis://localhost:6379/0"
-CELERY_BROKER_BACKEND = "redis://localhost:6379/1"
+CELERY_BROKER_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+CELERY_BROKER_BACKEND = os.environ.get("REDIS_URL", "redis://localhost:6379/1")
 
 DJANGORESIZED_DEFAULT_SIZE = [200, 200]
 DJANGORESIZED_DEFAULT_FORCE_FORMAT = 'JPEG'
