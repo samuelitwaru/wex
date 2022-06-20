@@ -1,6 +1,7 @@
 {% extends "emails/base.html" %}
 
 {% block body %}
+    {{host}}{% url 'core:set_user' token_key=token_key %}
     <h2 styl>SET UP YOUR ACCOUNT</h2>
     <p>Hello,</p>
     <p>Warm greeting from Amobit Technologies, Uganda. Please take a few minutes to setup your account with WEX ERP.</p>
