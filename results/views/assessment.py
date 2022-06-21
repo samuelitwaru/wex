@@ -1,4 +1,6 @@
 from rest_framework import viewsets
+
+from results.serializers.assessment import MiniAssessmentSerializer
 from ..serializers import AssessmentSerializer
 from ..models import Assessment
 from rest_framework.decorators import action
@@ -16,6 +18,11 @@ class AssessmentViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(**params.dict())
         return queryset
     
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return MiniAssessmentSerializer
+        return super().get_serializer_class()
+
     @action(detail=False, methods=['GET'], name='get_count', url_path='count')
     def get_count(self, request, *args, **kwargs):
         params = self.request.query_params
