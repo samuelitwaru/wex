@@ -1,7 +1,28 @@
-{% extends 'base.html' %} {% load static %} {% load app_tags %} {% block body %}
+{% extends 'base.html' %} 
+{% load static %} 
 
-<div class="list-group list-group-light">
-    <a href="http://127.0.0.1:8080" class="list-group-item list-group-item-action px-3 border-0">Results</a>
-    <a href="http://127.0.0.1:8080" class="list-group-item list-group-item-action px-3 border-0">Accounting</a>
-</div>
+{% load app_tags %} 
+{% block body %}
+	<div class="container">
+		<div align="center">
+			<img src="{% static 'img/logo.png' %}" />
+		</div>
+		<h1 align='center'>Welcome to WEX ERP</h1>
+		<div class="d-flex justify-content-between">
+			<div class="border border-primary w-75 my-auto"></div>
+			<h3 class="w-50" align="center">Apps</h3>
+			<div class="border border-primary w-75 my-auto"></div>
+		</div>
+		<div class="d-flex flex-wrap justify-content-center" align="center">
+			<a class="list-group-item border-2 m-2 rounded border-primary text-primary my-auto" target='_blank' href="https://wex-results.web.app/">
+			    	<span class="fa fa-mortar-board"></span>
+			    	Results
+		    </a>
+			<a class="m-2 list-group-item border-2 rounded border-secondary text-secondary my-auto" target='_blank' href="https://accounting-351715.oa.r.appspot.com/">
+			    	<span class="fa fa-dollar"></span>
+			    	Accounting
+		    </a>
+		</div>
+		
+	</div>
 {% endblock %}

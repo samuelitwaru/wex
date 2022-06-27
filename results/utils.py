@@ -81,73 +81,79 @@ def compute_subject_aggregates(scores=[60, 45, 79]):
 
 def compute_subject_grade(aggregates=[8,8,3]):
     n = len(aggregates)
-    # get worst
-    worst = max(aggregates)
-    # get how may times worst appears
-    n_worst = aggregates.count(worst)
+    if n:
+        # get worst
+        worst = max(aggregates)
+        # get how may times worst appears
+        n_worst = aggregates.count(worst)
 
-    if n > 2:
-        if worst <= 3:
-            if n_worst == 1: return "A" 
-            else: return "B"
-        elif worst <= 4:
-            if n_worst == 1: return "B" 
-            else: return "C"
-        elif worst <= 5:
-            if n_worst == 1: return "C" 
-            else: return "D"
-        elif worst <= 6:
-            if n_worst == 1: return "D" 
-            else: return "E"
-        elif worst <= 7:
-            if n_worst == 1: return "E" 
-            else: return "O"
-        elif worst <= 8:
-            if n_worst == 1:
-                other = aggregates.copy()
-                other.remove(worst)
-                if max(other) <= 6: return "E"
-            return "O"
-        elif worst <= 9:
-            if n_worst == 1:
+        if n > 2:
+            if worst <= 3:
+                if n_worst == 1: return "A" 
+                else: return "B"
+            elif worst <= 4:
+                if n_worst == 1: return "B" 
+                else: return "C"
+            elif worst <= 5:
+                if n_worst == 1: return "C" 
+                else: return "D"
+            elif worst <= 6:
+                if n_worst == 1: return "D" 
+                else: return "E"
+            elif worst <= 7:
+                if n_worst == 1: return "E" 
+                else: return "O"
+            elif worst <= 8:
+                if n_worst == 1:
+                    other = aggregates.copy()
+                    other.remove(worst)
+                    if max(other) <= 6: return "E"
                 return "O"
-            elif n_worst == 2:
-                other = aggregates.copy()
-                other.remove(worst)
-                other.remove(worst)
-                other = other[0]
-                # and not sci subj
-                if other <= 7:
+            elif worst <= 9:
+                if n_worst == 1:
                     return "O"
-            return "F"
-    else:
-        if worst <= 2: return "A"
-        elif worst <= 3: return "B"
-        elif worst <= 4: return "C"
-        elif worst <= 5: return "D"
-        elif worst <= 6: return "E"
-        elif( worst == 7 or worst == 8) and sum(aggregates) <= 12: return "E"
-        elif( worst == 7 or worst == 8) and sum(aggregates) <= 16: return "O"
-        elif worst==9 and sum(aggregates) <= 16: return "O"
-        return "F"
+                elif n_worst == 2:
+                    other = aggregates.copy()
+                    other.remove(worst)
+                    other.remove(worst)
+                    other = other[0]
+                    # and not sci subj
+                    if other <= 7:
+                        return "O"
+                return "F"
+        else:
+            if worst <= 2: return "A"
+            elif worst <= 3: return "B"
+            elif worst <= 4: return "C"
+            elif worst <= 5: return "D"
+            elif worst <= 6: return "E"
+            elif( worst == 7 or worst == 8) and sum(aggregates) <= 12: return "E"
+            elif( worst == 7 or worst == 8) and sum(aggregates) <= 16: return "O"
+            elif worst==9 and sum(aggregates) <= 16: return "O"
+    return "F"
         
 
-
-
-def compute_student_report(student_id, grading_system, period):
-    report = models.Report.objects.filter(period=period, student_id=student_id).first()
+def compute_student_report(student, grading_system, period, report_type):
+    report = models.Report.objects.filter(period=period, student=student).first()
     computed_report = ComputedReport(report, [])
-    student = models.Student.objects.filter(id=student_id).first()
+    # student = models.Student.objects.filter(id=student_id).first()
     subjects = models.Subject.objects.filter(is_selectable=False, level_group=student.class_room.level.level_group).union(student.subjects.all())
     period = models.Period.objects.latest()
     for subject in subjects:
         subject_report = SubjectReport(grading_system, subject, [])
-        papers = subject.paper_set.all()
+        if report_type == 'assessment':
+            papers = subject.papers.all()
+        else:
+            papers = [
+                activity.as_paper() for activity in models.Activity.objects.filter(class_room=student.class_room, subject=subject)
+            ]
+        
         for paper in papers:
             assessment_ids = [assessment.id for assessment in models.Assessment.objects.filter(paper=paper, period=period, class_room=student.class_room)]
             scores = [score.mark for score in models.Score.objects.filter(assessment__in=assessment_ids, student=student)]
             paper_report = PaperReport(grading_system, paper, scores)
             subject_report.papers.append(paper_report)
+        
         subject_report.set_values()
         computed_report.add_subject_report(subject_report)
     computed_report.set_values()
@@ -174,15 +180,14 @@ class ComputedReport:
         compulsories = []
         optionals = []
         for subj in self.subject_reports:
-            if subj.subject.is_selectable: compulsories.append(subj.aggregate)
-            else: optionals.append(subj.aggregate)
+            if subj.subject.is_selectable: optionals.append(subj.aggregate) 
+            else: compulsories.append(subj.aggregate)
         compulsories.sort()
         optionals.sort()
         if len(optionals) and len(optionals) >= 2:
             compulsories.extend(optionals[:2])
         else:
             compulsories.extend(optionals)
-        compulsories.sort()
         if len(compulsories) >= 8:
             self.aggregates = sum(compulsories[:8])
         else:
@@ -204,7 +209,10 @@ class SubjectReport:
         self.subject = subject
         self.papers = papers
     def __set_average(self):
-        self.average = sum([paper.average for paper in self.papers])/len(self.papers)
+        try:
+            self.average = sum([paper.average for paper in self.papers])/len(self.papers)
+        except ZeroDivisionError:
+            self.average = 0
     def __set_aggregate(self):
         self.aggregate = self.grading_system.grade(self.average)
     def __set_letter_grade(self):

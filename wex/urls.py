@@ -22,10 +22,13 @@ from core.urls import *
 from . import router
 from core.views import AuthLoginView, AuthLogoutView
 
+more_patterns = []
+
 # add urls for app if the app in installed
 if 'procurement' in settings.INSTALLED_APPS: from procurement.urls import *
-if 'results' in settings.INSTALLED_APPS: from results.urls import *
-
+if 'results' in settings.INSTALLED_APPS: 
+    from results.urls import *
+    more_patterns += nested_url_patterns
 
 
 urlpatterns = [
@@ -34,7 +37,7 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('api/auth/login/', AuthLoginView.as_view()),
     path('api/auth/logout/', AuthLogoutView.as_view()),
-]
+] + more_patterns
 
 # add accounts urls if 'accounts' app in installed
 if 'accounts' in settings.INSTALLED_APPS: 

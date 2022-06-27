@@ -5,6 +5,8 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.http import HttpResponse, HttpResponseNotFound
+
+from results.models import Teacher
 from ..forms import SetUserForm
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -17,12 +19,20 @@ class AuthLoginView(ObtainAuthToken):
                                            context={'request': request})
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
+        groups = [group.name for group in user.groups.all()]
         token, created = Token.objects.get_or_create(user=user)
-        return Response({
+        res = {
             'token': token.key,
-            'user_id': user.pk,
-            'email': user.email
-        })
+            'user': {
+                'user_id': user.pk,
+                'email': user.email,
+                'groups': groups
+            }
+        }
+        if 'teacher' in groups:
+            teacher = Teacher.objects.filter(user=user).first()
+            res['user']['teacher_id'] = teacher.id
+        return Response(res)
 
 
 class AuthLogoutView(APIView):

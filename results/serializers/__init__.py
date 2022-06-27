@@ -1,4 +1,3 @@
-from .user import *
 from .user_pref import *
 from .period import *
 from .subject import *
@@ -9,8 +8,9 @@ from .student import *
 from .assessment import *
 from .level import *
 from .grading_system import *
-# from .grade import *
 from .score import *
+from .activity_score import *
 from .teacher_class_room_subject import *
 from .report import *
 from .level_group import *
+from .activity import *

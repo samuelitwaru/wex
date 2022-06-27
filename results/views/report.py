@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from results.serializers.report import ComputedReportSerializer
 
 from results.utils import compute_student_report
-from ..models import GradingSystem, Period, Report
+from ..models import GradingSystem, Period, Report, Student
 from ..serializers import ReportSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -40,9 +40,9 @@ class ReportViewSet(viewsets.ModelViewSet):
             grading_system = GradingSystem.objects.first()
         if not period:
             period = Period.objects.latest()
-            
-        student_id = kwargs.get('student_id')
-        report = compute_student_report(student_id, grading_system, period)
+        student = Student.objects.filter(id=kwargs.get('student_id')).first()
+        report_type = params.get('report_type', 'assessment')
+        report = compute_student_report(student, grading_system, period, report_type=report_type)
         serializer = ComputedReportSerializer(report)
         return Response(serializer.data)
     
@@ -71,12 +71,11 @@ class ReportViewSet(viewsets.ModelViewSet):
         overwrite = data.get('overwrite')
         del data['reports']
         del data['overwrite']
-        if not data.get('class_teacher_comment'): 
-            del data['class_teacher_comment']
-            if not overwrite: queryset = queryset.filter(class_teacher_comment="")
-        if not data.get('head_teacher_comment'): 
-            del data['head_teacher_comment']
-            if not overwrite: queryset = queryset.filter(head_teacher_comment="")
+        if not overwrite:
+            if data.get('class_teacher_comment'):
+                queryset = queryset.filter(class_teacher_comment="")
+            if data.get('head_teacher_comment'):
+                queryset = queryset.filter(head_teacher_comment="")
         queryset.update(**data)
         serializer = self.get_serializer(queryset1, many=True)
         return Response(serializer.data)

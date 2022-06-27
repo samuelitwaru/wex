@@ -1,3 +1,4 @@
+from email.policy import default
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -5,8 +6,7 @@ from django.core.exceptions import ValidationError
 from core.models import TimeStampedModel
 from results.utils import DEFAULT_USER_PREFS, LEVELS, LEVEL_GROUPS
 from django_resized import ResizedImageField
-
-
+from django.db import transaction
 from utils import OverwiteStorageSystem, range_with_floats
 
 
@@ -32,6 +32,7 @@ SUBJECT_FIELD_CHOICES = (
 LEVEL_GROUP_CHOICES = tuple(LEVEL_GROUPS.items())
 
 PERCENTAGE_VALIDATOR = [MinValueValidator(0), MaxValueValidator(100)]
+PERTENTH_VALIDATOR = [MinValueValidator(0), MaxValueValidator(10)]
 
 
 def student_picture_upload_loacation(instance, filename):
@@ -82,7 +83,7 @@ class Subject(TimeStampedModel):
 class Paper(TimeStampedModel):
     number = models.IntegerField()
     description = models.CharField(max_length=128, null=True, blank=True)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='papers')
     
     class Meta:
         unique_together = ('number', 'subject')
@@ -103,7 +104,6 @@ class Level(TimeStampedModel):
     name = models.CharField(max_length=256)
     rank = models.IntegerField(unique=True)
     level_group = models.ForeignKey(LevelGroup, on_delete=models.CASCADE)
-    # description = models.CharField(max_length=128, null=True, blank=True)
     subjects = models.ManyToManyField('Subject', related_name='levels', blank=True)
     papers = models.ManyToManyField('Paper', related_name='levels', blank=True)
 
@@ -116,7 +116,6 @@ class ClassRoom(TimeStampedModel):
     stream = models.CharField(max_length=64, null=True, blank=True)
     level = models.ForeignKey(Level, on_delete=models.SET_NULL, null=True, blank=True)
     teacher = models.ForeignKey('Teacher', on_delete=models.SET_NULL, null=True, blank=True)
-    # assessments = models.ManyToManyField('Assessment', related_name='class_rooms', blank=True)
 
     class Meta:
         unique_together = ('name', 'stream')
@@ -124,15 +123,6 @@ class ClassRoom(TimeStampedModel):
 
     def __str__(self):
         return f"{self.name} {self.stream}"
-
-    # def clean(self):
-    #     # make sure that the level of assessments match the level of the class room
-    #     if self.id:
-    #         assessments = self.assessments.all()
-    #         if assessments:
-    #             for assessment in assessments:
-    #                 if assessment.level != self.level:
-    #                     raise ValidationError(f'Assessment "{assessment}" selected is of a different class room level.')
 
 
 class Teacher(TimeStampedModel):
@@ -143,6 +133,15 @@ class Teacher(TimeStampedModel):
     
     def __str__(self):
         return self.name
+
+
+class TeacherClassRoomPaper(TimeStampedModel):
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
+    paper = models.ForeignKey(Paper, on_delete=models.CASCADE)
+    
+    class Meta:
+        unique_together = ('teacher', 'class_room', 'paper')
 
 
 class Student(TimeStampedModel):
@@ -174,6 +173,21 @@ class Assessment(TimeStampedModel):
 
 
 
+class Activity(TimeStampedModel):
+    name = models.CharField(max_length=64)
+    class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, default=period_default)
+    period = models.ForeignKey(Period, on_delete=models.CASCADE, default=period_default)
+
+    def as_paper(self):
+        return Paper(id=self.id, number=self.id, description=self.name, subject=self.subject)
+
+class ActivityScore(TimeStampedModel):
+    activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    mark = models.IntegerField(default=0, validators=PERTENTH_VALIDATOR)
+
+
 class Score(TimeStampedModel):
     assessment = models.ForeignKey(Assessment, on_delete=models.CASCADE)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
@@ -197,9 +211,27 @@ class GradingSystem(TimeStampedModel):
     P7 = models.IntegerField(default=49)
     P8 = models.IntegerField(default=39)
     F9 = models.IntegerField(default=29)
-    level_group = models.ForeignKey('LevelGroup', on_delete=models.CASCADE)    
+    level_group = models.ForeignKey('LevelGroup', on_delete=models.CASCADE, related_name='grading_systems')    
+    is_default = models.BooleanField(default=True)
+
+    # def save(self, *args, **kwargs):
+    #     print('saving')
+    #     if not self.is_default:
+    #         return super(GradingSystem, self).save(*args, **kwargs)
+    #     with transaction.atomic():
+    #         GradingSystem.objects.filter(is_default=True, level_group=self.level_group).update(is_default=False)
+    #         return super(GradingSystem, self).save(*args, **kwargs)
+
+    # def delete(self):
+    #     if self.is_default:
+    #         print('deleteing')
+    #         new_default = GradingSystem.objects.exclude(id=self.id).first()
+    #         print(new_default)
+    #         if new_default: new_default.is_default = True; new_default.save()
+    #     super(GradingSystem, self).delete()
 
     def __str__(self):
+        if self.is_default: return f"{self.name} (default)" 
         return self.name
     
     def grade(self, mark):
@@ -213,56 +245,6 @@ class GradingSystem(TimeStampedModel):
         elif mark <= self.D2: return 2
         elif mark <= self.D1: return 1
 
-
-
-# class GradingSystem(TimeStampedModel):
-#     name = models.CharField(max_length=128)
-#     description = models.CharField(max_length=512)
-#     is_default = models.BooleanField(default=False)
-
-#     def __str__(self):
-#         return self.name
-
-
-# class Grade(TimeStampedModel):
-#     category = models.CharField(max_length=64)
-#     min_mark = models.DecimalField(max_digits=3, decimal_places=0, default=0, validators=PERCENTAGE_VALIDATOR)
-#     max_mark = models.DecimalField(max_digits=3, decimal_places=0, default=0, validators=PERCENTAGE_VALIDATOR)
-#     points = models.IntegerField(null=True, blank=True)
-#     aggregates = models.IntegerField(null=True, blank=True)
-#     grading_system = models.ForeignKey(GradingSystem, on_delete=models.CASCADE, related_name='grades')
-
-#     class Meta:
-#         unique_together = ('grading_system', 'min_mark', 'max_mark', 'category')
-
-#     def __str__(self):
-#         return f"{self.category} ({self.min_mark} - {self.max_mark})"
-    
-#     def clean(self):
-#         grades = self.grading_system.grades.exclude(id=self.id)
-#         for grade in grades:
-#             if grade.marks_intersect(self.min_mark, self.max_mark):
-#                 raise ValidationError(f"Mark range {self.min_mark} - {self.max_mark} conflicts with mark range {grade.min_mark} - {grade.max_mark} of grade {grade}.")
-
-#         if not (self.points or self.aggregates):
-#             raise ValidationError("You must specify either points or aggregates")
-#         if self.min_mark >= self.max_mark:
-#             raise ValidationError("Max mark must be greater than min mark")
-
-#     def marks_intersect(self, min_mark, max_mark):
-#         return set(range_with_floats(self.min_mark, self.max_mark)).intersection(
-#             set(range_with_floats(min_mark, max_mark))
-#         )
-        
-
-
-class TeacherClassRoomPaper(TimeStampedModel):
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
-    class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
-    paper = models.ForeignKey(Paper, on_delete=models.CASCADE)
-    
-    class Meta:
-        unique_together = ('teacher', 'class_room', 'paper')
 
 
 class UserPref(models.Model):
@@ -285,7 +267,7 @@ class Report(models.Model):
 
 
 # signals
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 
 
 def create_student_report(sender, instance, **kwargs):
@@ -298,8 +280,28 @@ def create_subject_papers(sender, instance, **kwargs):
         for n in range(0, no_papers):
             Paper.objects.create(**{'number': n+1, 'description':f'Paper {n+1}', 'subject':instance})
 
+def enforce_grading_system_one_default(sender, instance, **kwargs):
+    defaults = GradingSystem.objects.filter(level_group=instance.level_group, is_default=True)
+    if defaults.count() > 1:
+        if not instance.is_default:
+            print('making new default') # make new default
+            new_default = GradingSystem.objects.filter(level_group=instance.level_group).first()
+            if new_default: new_default.is_default=True; new_default.save()
+        else:
+            print('removing other defaults') # remove other defaults 
+            with transaction.atomic():
+                GradingSystem.objects.exclude(id=instance.id).filter(is_default=True, level_group=instance.level_group).update(is_default=False)
+    elif defaults.count() < 1:
+        print('making first default')
+        new_default = GradingSystem.objects.filter(level_group=instance.level_group).first()
+        if new_default: new_default.is_default=True; new_default.save()
+
+
+
 post_save.connect(create_student_report, sender=Student)
 post_save.connect(create_subject_papers, sender=Subject)
+post_save.connect(enforce_grading_system_one_default, sender=GradingSystem)
+post_delete.connect(enforce_grading_system_one_default, sender=GradingSystem)
 
 
 # initializations

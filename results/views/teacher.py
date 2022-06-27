@@ -1,7 +1,9 @@
 from rest_framework import viewsets
+from results.serializers.class_room import ClassRoomSerializer
+from results.serializers.subject import SubjectSerializer
 
 from utils import get_host_name
-from ..models import Teacher
+from ..models import ClassRoom, Subject, Teacher, TeacherClassRoomPaper
 from ..serializers import TeacherSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -39,7 +41,13 @@ class TeacherViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(**params.dict())
         count = queryset.count()
         return Response({'count':count})
-
+    
+    @action(detail=True, methods=['GET'], name='get_subjects_allocated', url_path='subjects/allocated')
+    def get_subjects_allocated(self, request, *args, **kwargs):
+        class_room_paper_ids = [class_room_paper.paper_id for class_room_paper in TeacherClassRoomPaper.objects.filter(teacher=kwargs.get('pk'))]
+        queryset = Subject.objects.filter(papers__in=class_room_paper_ids)
+        serializer = SubjectSerializer(queryset.all(), many=True)
+        return Response(serializer.data)
     
     @action(detail=True, methods=['POST'], name='set_user', url_path='user')
     def set_user(self, request, *args, **kwargs):

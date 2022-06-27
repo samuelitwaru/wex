@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from results.serializers.user import UserSerializer
+from core.serializers.user import UserSerializer
 from ..models import Teacher, TeacherClassRoomPaper
 
 
@@ -11,9 +11,13 @@ class TeacherClassRoomPaperSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class TeacherSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
 
+
+class MiniTeacherSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = Teacher
         fields = '__all__'
+
+class TeacherSerializer(MiniTeacherSerializer):
+    user = UserSerializer(read_only=True)

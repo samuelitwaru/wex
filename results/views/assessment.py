@@ -12,16 +12,19 @@ class AssessmentViewSet(viewsets.ModelViewSet):
     serializer_class = AssessmentSerializer
 
     def get_queryset(self):
-        params = self.request.query_params
         queryset = super().get_queryset()
+        teacher_pk = self.kwargs.get('teacher_pk')
+        if teacher_pk:
+            queryset = queryset.filter(teacher=teacher_pk)
+        params = self.request.query_params
         if params:
             queryset = queryset.filter(**params.dict())
         return queryset
     
-    def get_serializer_class(self):
-        if self.action == 'list':
-            return MiniAssessmentSerializer
-        return super().get_serializer_class()
+    # def get_serializer_class(self):
+    #     if self.action == 'list':
+    #         return MiniAssessmentSerializer
+    #     return super().get_serializer_class()
 
     @action(detail=False, methods=['GET'], name='get_count', url_path='count')
     def get_count(self, request, *args, **kwargs):

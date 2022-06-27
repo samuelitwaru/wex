@@ -25,3 +25,22 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
     def create(self, validated_data):
         validated_data['password'] = make_password(validated_data.get('password'))
         return super(UserSerializer, self).create(validated_data)
+
+
+
+from rest_framework import serializers
+from django.contrib.auth.models import User, Group
+
+
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        # fields = '__all__'
+        exclude = ('permissions',)
+
+
+class UserSerializer(serializers.ModelSerializer):
+    groups = GroupSerializer(many=True, read_only=True)
+    class Meta:
+        model = User
+        exclude = ('password',)
