@@ -179,8 +179,8 @@ class Activity(TimeStampedModel):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, default=period_default)
     period = models.ForeignKey(Period, on_delete=models.CASCADE, default=period_default)
 
-    def as_paper(self):
-        return Paper(id=self.id, number=self.id, description=self.name, subject=self.subject)
+    def __str__(self):
+        return self.name
 
 class ActivityScore(TimeStampedModel):
     activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
@@ -213,22 +213,6 @@ class GradingSystem(TimeStampedModel):
     F9 = models.IntegerField(default=29)
     level_group = models.ForeignKey('LevelGroup', on_delete=models.CASCADE, related_name='grading_systems')    
     is_default = models.BooleanField(default=True)
-
-    # def save(self, *args, **kwargs):
-    #     print('saving')
-    #     if not self.is_default:
-    #         return super(GradingSystem, self).save(*args, **kwargs)
-    #     with transaction.atomic():
-    #         GradingSystem.objects.filter(is_default=True, level_group=self.level_group).update(is_default=False)
-    #         return super(GradingSystem, self).save(*args, **kwargs)
-
-    # def delete(self):
-    #     if self.is_default:
-    #         print('deleteing')
-    #         new_default = GradingSystem.objects.exclude(id=self.id).first()
-    #         print(new_default)
-    #         if new_default: new_default.is_default = True; new_default.save()
-    #     super(GradingSystem, self).delete()
 
     def __str__(self):
         if self.is_default: return f"{self.name} (default)" 

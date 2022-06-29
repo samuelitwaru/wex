@@ -25,6 +25,7 @@ class AuthLoginView(ObtainAuthToken):
             'token': token.key,
             'user': {
                 'user_id': user.pk,
+                'name': f'{user.first_name} {user.last_name}',
                 'email': user.email,
                 'groups': groups
             }

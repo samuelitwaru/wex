@@ -83,6 +83,7 @@ class UserViewSet(viewsets.ModelViewSet):
             user = token.user
             res = {
                 'user_id': user.pk,
+                'name': f'{user.first_name} {user.last_name}',
                 'email': user.email,
                 'groups': [group.name for group in user.groups.all()]
             }

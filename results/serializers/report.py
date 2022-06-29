@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from results.serializers.paper import PaperSerializer
 
-from results.serializers.student import StudentSerializer
-from results.serializers.subject import SubjectSerializer
+from results.serializers.student import MiniStudentSerializer, StudentSerializer
+from results.serializers.subject import MiniSubjectSerializer, SubjectSerializer
+from results.serializers.activity import ActivitySerializer
 from ..models import Report
 
 
@@ -21,9 +22,18 @@ class PaperReportSerializer(serializers.Serializer):
     score = serializers.DecimalField(max_digits=2, decimal_places=1)
     descriptor = serializers.CharField()
 
+
+class ActivityReportSerializer(serializers.Serializer):
+    activity = ActivitySerializer()
+    mark = serializers.IntegerField()
+    score = serializers.DecimalField(max_digits=2, decimal_places=1)
+    descriptor = serializers.CharField()
+
+
 class SubjectReportSerializer(serializers.Serializer):
-    subject = SubjectSerializer()
+    subject = MiniSubjectSerializer()
     papers = PaperReportSerializer(many=True)
+    activities = ActivityReportSerializer(many=True)
     average = serializers.IntegerField()
     aggregate = serializers.IntegerField()
     letter_grade = serializers.CharField()

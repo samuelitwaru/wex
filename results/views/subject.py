@@ -18,7 +18,7 @@ class SubjectViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         level_pk = self.kwargs.get('level_pk')
         if level_pk:
-            queryset = queryset.filter(level=level_pk)
+            queryset = queryset.filter(level_group=level_pk)
         params = self.request.query_params
         if params:
             queryset = queryset.filter(**params.dict())

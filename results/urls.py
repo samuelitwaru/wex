@@ -33,15 +33,20 @@ nested_teachers_router.register(r'class-rooms', ClassRoomViewSet, basename='teac
 nested_assessments_router = routers.NestedSimpleRouter(router, r'assessments', lookup='assessment')
 nested_assessments_router.register(r'scores', ScoreViewSet, basename='assessment-scores')
 
-nested_levels_router = routers.NestedSimpleRouter(router, r'levels', lookup='assessment')
+nested_levels_router = routers.NestedSimpleRouter(router, r'levels', lookup='level')
 nested_levels_router.register(r'class-rooms', ClassRoomViewSet, basename='level-class-rooms')
 nested_levels_router.register(r'subjects', SubjectViewSet, basename='level-subjects')
+
+nested_class_rooms_router = routers.NestedSimpleRouter(router, r'class-rooms', lookup='class_room')
+nested_class_rooms_router.register(r'students', StudentViewSet, basename='class-room-students')
+# nested_class_rooms_router.register(r'subjects', SubjectViewSet, basename='level-subjects')
 
 
 nested_url_patterns = [
     path('api/', include(nested_teachers_router.urls)),
     path('api/', include(nested_assessments_router.urls)),
     path('api/', include(nested_levels_router.urls)),
+    path('api/', include(nested_class_rooms_router.urls)),
     path(r'api/teachers/<int:teacher_pk>/allocated-class-rooms/', get_teacher_allocated_class_rooms),
     path(r'api/teachers/<int:teacher_pk>/allocated-class-rooms/<int:class_room_pk>/', get_teacher_allocated_class_room),
     path(r'api/teachers/<int:teacher_pk>/allocated-papers/', get_teacher_allocated_papers),

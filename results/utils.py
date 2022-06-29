@@ -133,31 +133,33 @@ def compute_subject_grade(aggregates=[8,8,3]):
     return "F"
         
 
-def compute_student_report(student, grading_system, period, report_type):
+def compute_student_report(student, grading_system, period):
     report = models.Report.objects.filter(period=period, student=student).first()
     computed_report = ComputedReport(report, [])
     # student = models.Student.objects.filter(id=student_id).first()
     subjects = models.Subject.objects.filter(is_selectable=False, level_group=student.class_room.level.level_group).union(student.subjects.all())
     period = models.Period.objects.latest()
     for subject in subjects:
-        subject_report = SubjectReport(grading_system, subject, [])
-        if report_type == 'assessment':
-            papers = subject.papers.all()
-        else:
-            papers = [
-                activity.as_paper() for activity in models.Activity.objects.filter(class_room=student.class_room, subject=subject)
-            ]
-        
+        subject_report = SubjectReport(grading_system, subject, [], [])
+        papers = subject.papers.all()
         for paper in papers:
             assessment_ids = [assessment.id for assessment in models.Assessment.objects.filter(paper=paper, period=period, class_room=student.class_room)]
             scores = [score.mark for score in models.Score.objects.filter(assessment__in=assessment_ids, student=student)]
             paper_report = PaperReport(grading_system, paper, scores)
             subject_report.papers.append(paper_report)
-        
+
+        activities = [activity for activity in models.Activity.objects.filter(class_room=student.class_room, subject=subject, period=period)]
+        for activity in activities:
+            score = models.ActivityScore.objects.filter(activity=activity, student=student).first()
+            if score: mark = score.mark
+            else: mark = 0
+            activity_report = ActivityReport(activity, mark)
+            subject_report.activities.append(activity_report)
         subject_report.set_values()
         computed_report.add_subject_report(subject_report)
     computed_report.set_values()
     return computed_report
+
 
 
 class ComputedReport:
@@ -201,13 +203,17 @@ class ComputedReport:
         self.__set_aggregates()
         self.__set_points()
 
+
 class SubjectReport:
     subject = None
     papers = []
-    def __init__(self, grading_system, subject=None, papers=[]):
+    activities = []
+    def __init__(self, grading_system, subject=None, papers=[], activities=[]):
         self.grading_system = grading_system
         self.subject = subject
         self.papers = papers
+        self.activities = activities
+
     def __set_average(self):
         try:
             self.average = sum([paper.average for paper in self.papers])/len(self.papers)
@@ -253,6 +259,25 @@ class PaperReport:
             return 0
     def __compute_score(self):
         return round(self.average/100*3, 1)
+    def __compute_descriptor(self):
+        if self.score >= 0.9 and self.score <= 1.49:
+            return "Basic"
+        elif self.score >= 1.5 and self.score <= 2.49:
+            return "Moderate"
+        elif self.score >= 2.5 and self.score <= 3:
+            return "Outstanding"
+
+
+class ActivityReport:
+    paper = None
+    scores = []
+    def __init__(self, activity, mark):
+        self.activity = activity
+        self.mark = mark
+        self.score = self.__compute_score()
+        self.descriptor = self.__compute_descriptor()
+    def __compute_score(self):
+        return round(self.mark/10*3, 1)
     def __compute_descriptor(self):
         if self.score >= 0.9 and self.score <= 1.49:
             return "Basic"

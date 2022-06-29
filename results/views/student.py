@@ -14,8 +14,11 @@ class StudentViewSet(viewsets.ModelViewSet):
     # permission_classes = [partial(HasGroup, 'admin')]
 
     def get_queryset(self):
-        params = self.request.query_params
         queryset = super().get_queryset()
+        class_room_pk = self.kwargs.get('class_room_pk')
+        if class_room_pk:
+            queryset = queryset.filter(class_room=class_room_pk)
+        params = self.request.query_params
         if params:
             queryset = queryset.filter(**params.dict())
         return queryset
