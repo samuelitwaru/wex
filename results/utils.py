@@ -136,9 +136,7 @@ def compute_subject_grade(aggregates=[8,8,3]):
 def compute_student_report(student, grading_system, period):
     report = models.Report.objects.filter(period=period, student=student).first()
     computed_report = ComputedReport(report, [])
-    # student = models.Student.objects.filter(id=student_id).first()
     subjects = models.Subject.objects.filter(is_selectable=False, level_group=student.class_room.level.level_group).union(student.subjects.all())
-    period = models.Period.objects.latest()
     for subject in subjects:
         subject_report = SubjectReport(grading_system, subject, [], [])
         papers = subject.papers.all()
@@ -158,7 +156,10 @@ def compute_student_report(student, grading_system, period):
         subject_report.set_values()
         computed_report.add_subject_report(subject_report)
     computed_report.set_values()
-    return computed_report
+    report.points = computed_report.points
+    report.aggregates = computed_report.aggregates
+    report.save()
+    return report, computed_report
 
 
 
@@ -286,17 +287,3 @@ class ActivityReport:
         elif self.score >= 2.5 and self.score <= 3:
             return "Outstanding"
     
-def run():
-	c = [random.randint(1,9) for i in range(0,7)]
-	o = [random.randint(1,9) for i in range(0,3)]
-	o.sort()
-	c.sort()
-	print(c);print(o)
-	y = c[-2:]
-	x = o[:2]
-	print(y);print(x)
-	for i in [-1,-2]:
-		if x[i] < y[i]:print(c.pop(-1))
-	print(c+o)
-
-# from results import utils; utils.compute_student_report(18)

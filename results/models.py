@@ -34,6 +34,10 @@ LEVEL_GROUP_CHOICES = tuple(LEVEL_GROUPS.items())
 PERCENTAGE_VALIDATOR = [MinValueValidator(0), MaxValueValidator(100)]
 PERTENTH_VALIDATOR = [MinValueValidator(0), MaxValueValidator(10)]
 
+P_RESULT_VALIDATOR = [MinValueValidator(4), MaxValueValidator(36)]
+O_RESULT_VALIDATOR = [MinValueValidator(8), MaxValueValidator(72)]
+A_RESULT_VALIDATOR = [MinValueValidator(1), MaxValueValidator(20)]
+
 
 def student_picture_upload_loacation(instance, filename):
     _, extension = filename.split('.')
@@ -172,7 +176,6 @@ class Assessment(TimeStampedModel):
         return f'{self.class_room} {self.paper}'
 
 
-
 class Activity(TimeStampedModel):
     name = models.CharField(max_length=64)
     class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
@@ -236,11 +239,15 @@ class UserPref(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
 
-class Report(models.Model):
+class Report(TimeStampedModel):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     period = models.ForeignKey(Period, on_delete=models.CASCADE, default=period_default)
     class_teacher_comment = models.CharField(max_length=512, blank=True)
     head_teacher_comment = models.CharField(max_length=512, blank=True)
+    computation = models.JSONField(null=True)
+    aggregates = models.IntegerField(default=72, validators=O_RESULT_VALIDATOR)
+    points = models.IntegerField(default=0, validators=A_RESULT_VALIDATOR)
+    level = models.ForeignKey(Level, on_delete=models.CASCADE, related_name='reports')
 
     class Meta:
         unique_together = ('student', 'period')

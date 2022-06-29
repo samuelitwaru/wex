@@ -74,3 +74,7 @@ class Department(TimeStampedModel):
 
 	def __str__(self):
 		return self.name
+
+
+
+from django.db.models.signals import post_save

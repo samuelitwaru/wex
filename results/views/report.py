@@ -41,9 +41,12 @@ class ReportViewSet(viewsets.ModelViewSet):
         if not period:
             period = Period.objects.latest()
         student = Student.objects.filter(id=kwargs.get('student_id')).first()
-        grading_system = GradingSystem.objects.filter(is_default=True, level_group=student.class_room.level.level_group).first()
-        report = compute_student_report(student, grading_system, period)
-        serializer = ComputedReportSerializer(report)
+        level_group = student.class_room.level.level_group
+        grading_system = GradingSystem.objects.filter(is_default=True, level_group=level_group).first()
+        report, computed_report = compute_student_report(student, grading_system, period)
+        serializer = ComputedReportSerializer(computed_report)
+        report.computation = serializer.data
+        report.save()
         return Response(serializer.data)
     
     @action(detail=True, methods=['GET'], name='get_report_result', url_path='result') 

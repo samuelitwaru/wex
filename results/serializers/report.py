@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from results.serializers.level import MiniLevelSerializer
 from results.serializers.paper import PaperSerializer
 
 from results.serializers.student import MiniStudentSerializer, StudentSerializer
@@ -8,10 +9,12 @@ from ..models import Report
 
 
 class ReportSerializer(serializers.ModelSerializer):
+    level = MiniLevelSerializer(read_only=True)
     student = StudentSerializer(read_only=True)
     class Meta:
         model = Report
-        fields = '__all__'
+        # fields = '__all__'
+        exclude = ('computation',)
 
 
 class PaperReportSerializer(serializers.Serializer):

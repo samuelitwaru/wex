@@ -6,6 +6,7 @@ from ..models import Level
 
 
 class MiniLevelSerializer(serializers.ModelSerializer):
+    level_group_name = serializers.CharField(source='level_group.name', read_only=True)
     class Meta:
         model = Level
         fields = '__all__'
