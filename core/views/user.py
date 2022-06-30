@@ -13,7 +13,7 @@ from rest_framework.response import Response
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    queryset = User.objects.exclude(is_superuser=True).all()
     serializer_class = UserSerializer
 
     def get_queryset(self):

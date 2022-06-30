@@ -134,7 +134,7 @@ def compute_subject_grade(aggregates=[8,8,3]):
         
 
 def compute_student_report(student, grading_system, period):
-    report = models.Report.objects.filter(period=period, student=student).first()
+    report, created = models.Report.objects.get_or_create(period=period, student=student)
     computed_report = ComputedReport(report, [])
     subjects = models.Subject.objects.filter(is_selectable=False, level_group=student.class_room.level.level_group).union(student.subjects.all())
     for subject in subjects:

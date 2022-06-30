@@ -160,6 +160,8 @@ class Student(TimeStampedModel):
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
+    class Meta:
+        ordering=['class_room__level']
 
 
 class Assessment(TimeStampedModel):
@@ -251,6 +253,8 @@ class Report(TimeStampedModel):
 
     class Meta:
         unique_together = ('student', 'period')
+        ordering = ['level']
+
     
     def __str__(self):
         return f'{self.student} - {self.period}'
@@ -263,7 +267,7 @@ from django.db.models.signals import post_save, post_delete
 
 def create_student_report(sender, instance, **kwargs):
     if kwargs.get('created'):
-        Report.objects.create(**{'student':instance})
+        Report.objects.create(**{'student':instance, 'level':instance.class_room.level})
 
 def create_subject_papers(sender, instance, **kwargs):
     if kwargs.get('created'):
