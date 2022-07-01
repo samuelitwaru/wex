@@ -1,6 +1,6 @@
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from django.contrib.auth.models import User, Group
 from rest_framework.authtoken.models import Token
 from core.tasks import send_welcome_mail
@@ -10,6 +10,7 @@ from utils import get_host_name
 from ..serializers import UserSerializer, GroupSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.contrib.auth import authenticate
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -92,6 +93,24 @@ class UserViewSet(viewsets.ModelViewSet):
                 res['teacher_id'] = teacher.id
             return Response(res)
         return Response({})
+
+    
+    @action(detail=True, methods=['PUT'], name='update_password', url_path=r'update-password', permission_classes=[])
+    def update_password(self, request, *args, **kwargs):
+        user = get_object_or_404(User.objects, pk=self.kwargs['pk'])
+        data = request.data
+        current_password = data.get('current_password')
+        
+        user = authenticate(username=user.username, password=current_password)
+        if user:
+            print(user)
+            if data['new_password'] == data['confirm_password']:
+                user.set_password(data.get('new_password'))
+                user.save()
+                serializer = self.get_serializer(user)
+                return Response(serializer.data)
+            return HttpResponseBadRequest('New passwords entered do not match.')
+        return HttpResponseBadRequest('Invalid current password.')
     
 
     @action(detail=False, methods=['POST'], name='reset_password', url_path=r'reset-password', permission_classes=[])
