@@ -11,11 +11,14 @@ from ..serializers import UserSerializer, GroupSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
+from permissions import HasGroup
+from functools import partial
 
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.exclude(is_superuser=True).all()
     serializer_class = UserSerializer
+    # permission_classes = [partial(HasGroup, 'dos')]
 
     def get_queryset(self):
         params = self.request.query_params
@@ -55,14 +58,13 @@ class UserViewSet(viewsets.ModelViewSet):
         groups = Group.objects.filter(id__in=group_ids)
         user.groups.set(groups)
         if groups.filter(name='teacher').first():
-            teacher = Teacher.objects.get_or_create(
+            Teacher.objects.get_or_create(
                 user=user, 
                 defaults={
                     'name':f'{user.first_name} {user.last_name}', 
                     'initials':f'{user.first_name[0]}.{user.last_name[0]}',
                     }
                 )
-            print(teacher)
         serializer = self.get_serializer(user)
         return Response(serializer.data)
 
