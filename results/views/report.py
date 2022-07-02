@@ -2,6 +2,7 @@ from rest_framework import viewsets
 from results.serializers.report import ComputedReportSerializer
 
 from results.utils import compute_student_report
+from results.utils.report_pdf import create_pdf_report
 from ..models import GradingSystem, Period, Report, Student
 from ..serializers import ReportSerializer
 from rest_framework.decorators import action
@@ -45,6 +46,8 @@ class ReportViewSet(viewsets.ModelViewSet):
         grading_system = GradingSystem.objects.filter(is_default=True, level_group=level_group).first()
         report, computed_report = compute_student_report(student, grading_system, period)
         serializer = ComputedReportSerializer(computed_report)
+        data = create_pdf_report(computed_report)
+        print(data)
         report.computation = serializer.data
         report.save()
         return Response(serializer.data)

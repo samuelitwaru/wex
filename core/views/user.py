@@ -105,7 +105,6 @@ class UserViewSet(viewsets.ModelViewSet):
         
         user = authenticate(username=user.username, password=current_password)
         if user:
-            print(user)
             if data['new_password'] == data['confirm_password']:
                 user.set_password(data.get('new_password'))
                 user.save()
