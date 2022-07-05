@@ -183,7 +183,7 @@ class Activity(TimeStampedModel):
     class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, default=period_default)
     period = models.ForeignKey(Period, on_delete=models.CASCADE, default=period_default)
-    # teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
 
 
     def __str__(self):

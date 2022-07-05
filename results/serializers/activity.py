@@ -7,7 +7,7 @@ from ..models import Activity
 
 
 class ActivitySerializer(serializers.ModelSerializer):
-    subject_name = serializers.CharField(source='subject.name')
+    subject_name = serializers.CharField(source='subject.name', read_only=True)
     class Meta:
         model = Activity
         fields = '__all__'
