@@ -7,8 +7,9 @@ class ReportFilter(django_filters.FilterSet):
 
     class Meta:
         model = Report
-        fields = ('student__class_room', 'period', 'class_teacher_comment', 'head_teacher_comment')
-        # fileds = '__all__'
+        fields = ('level__level_group', 'student__class_room', 'period', 'class_teacher_comment', 'head_teacher_comment')
+        # fields = '__all__'
+        exclude = ('computation')
     
     def class_teacher_commented_filter(self, queryset, name, value):
         if value == 'yes':

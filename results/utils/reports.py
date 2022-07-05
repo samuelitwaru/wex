@@ -50,7 +50,7 @@ def compute_subject_grade(aggregates=[8,8,3]):
                     if other <= 7:
                         return "O"
                 return "F"
-        else:
+        elif n > 1:
             if worst <= 2: return "A"
             elif worst <= 3: return "B"
             elif worst <= 4: return "C"
@@ -64,7 +64,7 @@ def compute_subject_grade(aggregates=[8,8,3]):
 
 def compute_student_report(student, grading_system, period):
     report, created = models.Report.objects.get_or_create(period=period, student=student)
-    computed_report = ComputedReport(report, [])
+    computed_report = ComputedReport(student, report, [])
     subjects = models.Subject.objects.filter(is_selectable=False, level_group=student.class_room.level.level_group).union(student.subjects.all())
     for subject in subjects:
         subject_report = SubjectReport(grading_system, subject, [], [])
@@ -99,7 +99,8 @@ class ComputedReport:
     aggregates = 0
     average = 0
     
-    def __init__(self, report, subject_reports=[]):
+    def __init__(self, student, report, subject_reports=[]):
+        self.student = student
         self.report = report
         self.subject_reports = subject_reports
 

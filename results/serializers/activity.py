@@ -7,9 +7,7 @@ from ..models import Activity
 
 
 class ActivitySerializer(serializers.ModelSerializer):
-    # class_room_detail = MiniClassRoomSerializer(source='class_room', read_only=True)
-    # subject_detail = SubjectSerializer(source='subject', read_only=True)
-    # period_detail = PeriodSerializer(source='period', read_only=True)
+    subject_name = serializers.CharField(source='subject.name')
     class Meta:
         model = Activity
         fields = '__all__'

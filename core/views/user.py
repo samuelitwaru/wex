@@ -58,13 +58,10 @@ class UserViewSet(viewsets.ModelViewSet):
         groups = Group.objects.filter(id__in=group_ids)
         user.groups.set(groups)
         if groups.filter(name='teacher').first():
-            Teacher.objects.get_or_create(
-                user=user, 
-                defaults={
-                    'name':f'{user.first_name} {user.last_name}', 
-                    'initials':f'{user.first_name[0]}.{user.last_name[0]}',
-                    }
-                )
+            teacher, created = Teacher.objects.get_or_create(user=user)
+            teacher.name = f'{user.first_name} {user.last_name}'
+            teacher.initials = f'{user.first_name[0]}.{user.last_name[0]}'
+            teacher.save()
         serializer = self.get_serializer(user)
         return Response(serializer.data)
 

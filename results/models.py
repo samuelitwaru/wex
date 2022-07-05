@@ -118,8 +118,8 @@ class Level(TimeStampedModel):
 class ClassRoom(TimeStampedModel):
     name = models.CharField(max_length=64)
     stream = models.CharField(max_length=64, null=True, blank=True)
-    level = models.ForeignKey(Level, on_delete=models.SET_NULL, null=True, blank=True)
-    teacher = models.ForeignKey('Teacher', on_delete=models.SET_NULL, null=True, blank=True)
+    level = models.ForeignKey(Level, on_delete=models.CASCADE)
+    teacher = models.ForeignKey('Teacher', on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('name', 'stream')
@@ -183,6 +183,8 @@ class Activity(TimeStampedModel):
     class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, default=period_default)
     period = models.ForeignKey(Period, on_delete=models.CASCADE, default=period_default)
+    # teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+
 
     def __str__(self):
         return self.name
@@ -272,8 +274,9 @@ def create_student_report(sender, instance, **kwargs):
 def create_subject_papers(sender, instance, **kwargs):
     if kwargs.get('created'):
         no_papers = instance.no_papers
-        for n in range(0, no_papers):
-            Paper.objects.create(**{'number': n+1, 'description':f'Paper {n+1}', 'subject':instance})
+        papers = Paper.objects.bulk_create([Paper(**{'number': n+1, 'description':f'Paper {n+1}', 'subject':instance}) for n in range(0, no_papers)])
+        for level in instance.level_group.level_set.all():
+            level.papers.add(*papers)
 
 def enforce_grading_system_one_default(sender, instance, **kwargs):
     defaults = GradingSystem.objects.filter(level_group=instance.level_group, is_default=True)
@@ -290,6 +293,7 @@ def enforce_grading_system_one_default(sender, instance, **kwargs):
         print('making first default')
         new_default = GradingSystem.objects.filter(level_group=instance.level_group).first()
         if new_default: new_default.is_default=True; new_default.save()
+
 
 
 

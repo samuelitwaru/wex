@@ -1,8 +1,10 @@
+from django.http import FileResponse
 from rest_framework import viewsets
 from results.serializers.report import ComputedReportSerializer
+from utils import get_host_name
 
 from results.utils import compute_student_report
-from results.utils.report_pdf import create_pdf_report
+from results.utils.report_pdf import build_document
 from ..models import GradingSystem, Period, Report, Student
 from ..serializers import ReportSerializer
 from rest_framework.decorators import action
@@ -21,7 +23,11 @@ class ReportViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         f = ReportFilter(self.request.GET, queryset=queryset)
-        return f.queryset
+        queryset = f.queryset
+        # params = self.request.query_params
+        # if params:
+        #     queryset = queryset.filter(**params.dict())
+        return queryset
 
     @action(detail=False, methods=['GET'], name='get_count', url_path='count')
     def get_count(self, request, *args, **kwargs):
@@ -46,12 +52,33 @@ class ReportViewSet(viewsets.ModelViewSet):
         grading_system = GradingSystem.objects.filter(is_default=True, level_group=level_group).first()
         report, computed_report = compute_student_report(student, grading_system, period)
         serializer = ComputedReportSerializer(computed_report)
-        data = create_pdf_report(computed_report)
-        print(data)
         report.computation = serializer.data
         report.save()
         return Response(serializer.data)
     
+
+    @action(detail=False, methods=['GET'], name='download_student_report', url_path=r'computed/(?P<student_id>[\w-]+)/download') 
+    def download_student_report(self, request, *args, **kwargs):
+        params = self.request.query_params
+        grading_system = GradingSystem.objects.filter(id=params.get('grading_system')).first()
+        period = Period.objects.filter(id=params.get('period')).first()
+        if not grading_system:
+            grading_system = GradingSystem.objects.first()
+        if not period:
+            period = Period.objects.latest()
+        student = Student.objects.filter(id=kwargs.get('student_id')).first()
+        level_group = student.class_room.level.level_group
+        grading_system = GradingSystem.objects.filter(is_default=True, level_group=level_group).first()
+        report, computed_report = compute_student_report(student, grading_system, period)
+        serializer = ComputedReportSerializer(computed_report)
+        doc = build_document(computed_report)
+        filename = doc.filename.split('/')[-1]
+        host = get_host_name(request)
+        file_url = f'{host}/media/{filename}'
+        report.computation = serializer.data
+        report.save()
+        return Response({'file_url': file_url})
+        
     @action(detail=True, methods=['GET'], name='get_report_result', url_path='result') 
     def get_report_result(self, request, pk, *args, **kwargs):
         params = self.request.query_params
