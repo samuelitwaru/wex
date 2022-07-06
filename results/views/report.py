@@ -4,7 +4,7 @@ from results.serializers.report import ComputedReportSerializer
 from utils import get_host_name
 
 from results.utils import compute_student_report
-from results.utils.report_pdf import build_document
+from results.utils.report_pdf import PDFReport, build_document
 from ..models import GradingSystem, Period, Report, Student
 from ..serializers import ReportSerializer
 from rest_framework.decorators import action
@@ -41,10 +41,7 @@ class ReportViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], name='get_computed_student_report', url_path=r'computed/(?P<student_id>[\w-]+)') 
     def get_student_computed_report(self, request, *args, **kwargs):
         params = self.request.query_params
-        grading_system = GradingSystem.objects.filter(id=params.get('grading_system')).first()
         period = Period.objects.filter(id=params.get('period')).first()
-        if not grading_system:
-            grading_system = GradingSystem.objects.first()
         if not period:
             period = Period.objects.latest()
         student = Student.objects.filter(id=kwargs.get('student_id')).first()
@@ -57,13 +54,10 @@ class ReportViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
     
 
-    @action(detail=False, methods=['GET'], name='download_student_report', url_path=r'computed/(?P<student_id>[\w-]+)/download') 
+    @action(detail=False, methods=['POST'], name='download_student_report', url_path=r'computed/(?P<student_id>[\w-]+)/download') 
     def download_student_report(self, request, *args, **kwargs):
         params = self.request.query_params
-        grading_system = GradingSystem.objects.filter(id=params.get('grading_system')).first()
         period = Period.objects.filter(id=params.get('period')).first()
-        if not grading_system:
-            grading_system = GradingSystem.objects.first()
         if not period:
             period = Period.objects.latest()
         student = Student.objects.filter(id=kwargs.get('student_id')).first()
@@ -71,7 +65,11 @@ class ReportViewSet(viewsets.ModelViewSet):
         grading_system = GradingSystem.objects.filter(is_default=True, level_group=level_group).first()
         report, computed_report = compute_student_report(student, grading_system, period)
         serializer = ComputedReportSerializer(computed_report)
-        doc = build_document(computed_report)
+        # doc = build_document(computed_report)
+        columns = request.data.get('columns')
+        report_type = request.data.get('report_type')
+        pdf_report = PDFReport(computed_report, report_type=report_type, columns=columns)
+        doc = pdf_report.run()
         filename = doc.filename.split('/')[-1]
         host = get_host_name(request)
         file_url = f'{host}/media/{filename}'

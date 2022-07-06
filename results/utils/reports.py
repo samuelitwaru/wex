@@ -70,6 +70,8 @@ def compute_student_report(student, grading_system, period):
         subject_report = SubjectReport(grading_system, subject, [], [])
         papers = subject.papers.all()
         papers = student.class_room.level.papers.filter(subject=subject)
+        allocation = models.TeacherClassRoomPaper.objects.filter(paper=papers.first(), class_room=student.class_room).first()
+        if allocation: subject_report.teacher = allocation.teacher
         for paper in papers:
             assessment_ids = [assessment.id for assessment in models.Assessment.objects.filter(paper=paper, period=period, class_room=student.class_room)]
             scores = [score.mark for score in models.Score.objects.filter(assessment__in=assessment_ids, student=student)]
@@ -129,6 +131,7 @@ class ComputedReport:
 
     def __set_average(self):
         self.average = sum([subj.average for subj in self.subject_reports])/len(self.subject_reports)
+
     
     def set_values(self):
         self.__set_average()
@@ -140,6 +143,9 @@ class SubjectReport:
     subject = None
     papers = []
     activities = []
+    skills = ''
+    remarks = ''
+
     def __init__(self, grading_system, subject=None, papers=[], activities=[]):
         self.grading_system = grading_system
         self.subject = subject
@@ -162,11 +168,19 @@ class SubjectReport:
         if self.subject.is_subsidiary:
             mapper = {"A":1,"B":1,"C":1,"D":1,"E":1,"O":1,"F":0,}
         self.points = mapper[self.letter_grade]
+
+    def __set_subject_teacher_initals(self):
+        if self.teacher:
+            self.subject_teacher_initials = self.teacher.initials
+        else:
+            self.subject_teacher_initials = ''
+    
     def set_values(self):
         self.__set_average()
         self.__set_aggregate()
         self.__set_letter_grade()
         self.__set_points()
+        self.__set_subject_teacher_initals()
     
 
 class PaperReport:
@@ -175,11 +189,17 @@ class PaperReport:
     def __init__(self, grading_system, paper, scores):
         self.grading_system = grading_system
         self.paper = paper
+        self.description = paper.description
         self.scores = scores
         self.total = self.__compute_total()
         self.average = self.__compute_average()
         self.score = self.__compute_score()
         self.descriptor = self.__compute_descriptor()
+    
+    @property
+    def scores_string(self):
+        return str(self.scores).lstrip('[').rstrip(']')
+
     def __compute_aggregates(self):
         return [self.grading_system.grade(score) for score in self.scores]
     def __compute_total(self):
@@ -198,6 +218,7 @@ class PaperReport:
             return "Moderate"
         elif self.score >= 2.5 and self.score <= 3:
             return "Outstanding"
+        return ''
 
 
 class ActivityReport:
@@ -205,6 +226,7 @@ class ActivityReport:
     scores = []
     def __init__(self, activity, mark):
         self.activity = activity
+        self.name = activity.name
         self.mark = mark
         self.score = self.__compute_score()
         self.descriptor = self.__compute_descriptor()
@@ -217,5 +239,6 @@ class ActivityReport:
             return "Moderate"
         elif self.score >= 2.5 and self.score <= 3:
             return "Outstanding"
+        return ''
     
 

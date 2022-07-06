@@ -40,6 +40,7 @@ class SubjectReportSerializer(serializers.Serializer):
     average = serializers.IntegerField()
     aggregate = serializers.IntegerField()
     letter_grade = serializers.CharField()
+    subject_teacher_initials = serializers.CharField()
     points = serializers.IntegerField()
 
 
