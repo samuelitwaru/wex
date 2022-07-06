@@ -18,6 +18,7 @@ BLACK_GRID = ('GRID', (0,0), (-1,-1), 0.5, colors.black)
 VALIGN_MIDDLE = ('VALIGN', (0,0), (-1,-1), 0.5, 'MIDDLE')
 PADDING_2 = ('LEFTPADDING', (0,0), (-1,-1), 2)
 
+
 def calc_col_ratios(data):
     num_cols = len(data[0])
     ratios = []
@@ -76,9 +77,11 @@ def create_header():
     ]
     style = [
         ('SPAN', (0,0), (0,3)), 
-        ('GRID', (0,0), (0,3), 0.5, colors.grey)
+        ('LEFTPADDING', (0,0), (0,3), 0)
         ]
-    table = Table(data=stretch_data(rows), style=style, colWidths=col_widths_by_ratio([1, 3.8]))
+    table = Table(
+        data=stretch_data(rows), 
+        style=style, colWidths=col_widths_by_ratio([1, 4]))
     return table
 
 def create_student_table(student):
@@ -88,20 +91,22 @@ def create_student_table(student):
         student.picture = 'profile-placeholder.png'
     image = get_image(f'{settings.MEDIA_ROOT}/{student.picture}')
     rows = [
-        [image ,f'{student}','Period'],
-        ['',f'{class_room.name} {class_room.stream or ""}',''],
-        ['',f'{student.dob}', f'{period}'],
-        ['',f'{student.gender}',''],
+        [image , 'Name',f'{student}','Period'],
+        ['', 'Class', f'{class_room.name} {class_room.stream or ""}',''],
+        ['', 'DOB', f'{student.dob}', f'{period}'],
+        ['', 'Sex', f'{student.gender}',''],
     ]
     style = [
         ('SPAN', (0,0),(0,3)),
-        ('SPAN', (2,0),(2,1)),
-        ('SPAN', (2,2),(2,3)),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.grey)
+        ('LEFTPADDING', (0,0),(0,3), 0),
+        ('SPAN', (3,0),(3,1)),
+        ('SPAN', (3,2),(3,3)),
+        ('GRID', (1,0), (-1,-1), 0.5, colors.black),
+        VALIGN_MIDDLE
     ]
     table = Table(
         data=stretch_data(rows), 
-        style=style, colWidths=col_widths_by_ratio([1,4,1])
+        style=style, colWidths=col_widths_by_ratio([1.5,1,5,1])
         )
     return table
 
@@ -219,7 +224,6 @@ class PDFReport:
             body_table = self.create_body_table()
         else:
             body_table = self.create_activity_body_table()
-        result_table = self.create_result_table()
         comment_table = self.create_comment_table()
         doc = SimpleDocTemplate(
 		f"{settings.MEDIA_ROOT}/{self.computed_report.student.id}.pdf", pagesize=A4, rightMargin=20,
@@ -231,7 +235,9 @@ class PDFReport:
         elements.append(space)
         elements.append(body_table)
         elements.append(space)
-        elements.append(result_table)
+        if self.report_type == 'assessment':
+            result_table = self.create_result_table()
+            elements.append(result_table)
         elements.append(space)
         elements.append(comment_table)
         doc.build(elements)
@@ -359,8 +365,7 @@ def create_assessment_body_table(computed_report, columns):
                     span_row.append(str(getattr(activity, col['name'])))
             [span_row.append('') for col in cols3 if columns.get(col['col'])] 
             rows.append(span_row)
-    print(rows)
-   
+    style.append(BLACK_GRID)
     ratios = calc_col_ratios(rows)
     col_widths = col_widths_by_ratio(ratios)
     table = Table(rows, style=style, colWidths=col_widths)
