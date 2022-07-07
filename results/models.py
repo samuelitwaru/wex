@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
+from django.forms import JSONField
 from core.models import TimeStampedModel
 from results.utils import DEFAULT_USER_PREFS, LEVELS, LEVEL_GROUPS
 from django_resized import ResizedImageField
@@ -180,6 +181,7 @@ class Assessment(TimeStampedModel):
 
 class Activity(TimeStampedModel):
     name = models.CharField(max_length=64)
+    skills = models.JSONField()
     class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, default=period_default)
     period = models.ForeignKey(Period, on_delete=models.CASCADE, default=period_default)
