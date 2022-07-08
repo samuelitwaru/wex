@@ -11,6 +11,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from ..filters import ReportFilter
 from django_filters import rest_framework as filters
+import os
 
 
 
@@ -70,7 +71,7 @@ class ReportViewSet(viewsets.ModelViewSet):
         report_type = request.data.get('report_type')
         pdf_report = PDFReport(computed_report, report_type=report_type, columns=columns)
         doc = pdf_report.run()
-        filename = doc.filename.split('/')[-1]
+        filename = os.path.basename(doc.filename)
         host = get_host_name(request)
         file_url = f'{host}/media/{filename}'
         report.computation = serializer.data

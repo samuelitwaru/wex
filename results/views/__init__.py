@@ -14,3 +14,4 @@ from .teacher_class_room_paper import *
 from .report import *
 from .level_group import *
 from .activity import *
+from .custom_grading_system import *

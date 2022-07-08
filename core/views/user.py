@@ -49,11 +49,13 @@ class UserViewSet(viewsets.ModelViewSet):
     
     def update(self, request, *args, **kwargs):
         user = get_object_or_404(self.queryset, pk=kwargs['pk'])
+        print(dir(user))
         group_ids = request.data.pop('groups', [])
         user.first_name = request.data.get('first_name')
         user.last_name = request.data.get('last_name')
         user.username = request.data.get('username')
         user.email = request.data.get('email')
+        user.is_active = request.data.get('is_active')
         user.save()
         groups = Group.objects.filter(id__in=group_ids)
         user.groups.set(groups)

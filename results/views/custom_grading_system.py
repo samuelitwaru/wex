@@ -1,12 +1,13 @@
 from rest_framework import viewsets
-from ..models import GradingSystem
-from ..serializers import GradingSystemSerializer
+from ..models import CustomGradingSystem
+from ..serializers import CustomGradingSystemSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-class GradingSystemViewSet(viewsets.ModelViewSet):
-    queryset = GradingSystem.objects.all()
-    serializer_class = GradingSystemSerializer
+
+class CustomGradingSystemViewSet(viewsets.ModelViewSet):
+    queryset = CustomGradingSystem.objects.all()
+    serializer_class = CustomGradingSystemSerializer
 
     def get_queryset(self):
         params = self.request.query_params

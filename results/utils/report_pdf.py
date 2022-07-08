@@ -7,12 +7,8 @@ from reportlab.lib import colors
 from os.path import exists
 from core.models import Entity
 from results.models import Period
+from results.serializers import assessment
 
-'''
-top_data
-mid_data
-bot_data
-'''
 
 BLACK_GRID = ('GRID', (0,0), (-1,-1), 0.5, colors.black)
 VALIGN_MIDDLE = ('VALIGN', (0,0), (-1,-1), 0.5, 'MIDDLE')
@@ -124,68 +120,6 @@ def create_comment_table(computed_report):
     table = Table(
         data=stretch_data(rows), colWidths=col_widths_by_ratio([1,3]), 
         style=style, rowHeights=[40,40])
-    return table
-
-
-def create_body_table(computed_report, columns):
-    subject_reports = computed_report.subject_reports
-    rows = []
-    style = []
-    row_span = 1
-    header = [col for col, available in columns.items() if available]
-    rows.append(header)
-    for subj in subject_reports:
-        row = []
-        subject = subj.subject
-        papers = subj.papers
-        len_papers = len(papers)
-        if columns.get('code'): row.append(subject.code); style.append(('SPAN', (header.index('code'),row_span), (header.index('code'), row_span+len_papers-1)))
-        if columns.get('subject'): row.append(subject.name); style.append(('SPAN', (header.index('subject'),row_span), (header.index('subject'), row_span+len_papers-1)))
-        papers = subj.papers
-        if len(papers):
-            if columns.get('paper'): row.append(papers[0].paper.description)
-            if columns.get('assessments'): row.append(str(papers[0].scores or ''))
-            if columns.get('score'): row.append(str(papers[0].score or ''))
-            if columns.get('descriptor'): row.append(str(papers[0].descriptor))
-            if columns.get('total'): row.append(str(papers[0].total))
-            if columns.get('average'): row.append(str(papers[0].average))
-        else:
-            cols = ['paper', 'assessments', 'score', 'descriptor', 'total', 'average']
-            [row.append('') for col in cols if columns.get(col)]
-        if columns.get('subjectAverage'): row.append(str(subj.average)); style.append(('SPAN', (header.index('subjectAverage'),row_span), (header.index('subjectAverage'), row_span+len_papers-1)))
-        if columns.get('aggregates'): row.append(str(subj.aggregate)); style.append(('SPAN', (header.index('aggregates'),row_span), (header.index('aggregates'), row_span+len_papers-1)))
-        if columns.get('grade'): row.append(subj.letter_grade); style.append(('SPAN', (header.index('grade'),row_span), (header.index('grade'), row_span+len_papers-1))) 
-        if columns.get('points'): row.append(str(subj.points)); style.append(('SPAN', (header.index('points'),row_span), (header.index('points'), row_span+len_papers-1))) 
-        if columns.get('subjectTeacher'): row.append(str(subj.points)); style.append(('SPAN', (header.index('subjectTeacher'),row_span), (header.index('subjectTeacher'), row_span+len_papers-1))) 
-        row_span += len_papers
-        rows.append(row)
-        for i in range(1, len_papers):
-            paper_report = papers[i]
-            paper = paper_report.paper
-            paper_row = []
-            if columns.get('code'): paper_row.append('')
-            if columns.get('subject'): paper_row.append('')
-            if columns.get('paper'): paper_row.append(str(paper.description))
-            if columns.get('assessments'): paper_row.append(str(paper_report.scores or ''))
-            if columns.get('score'): paper_row.append(str(paper_report.score or ''))
-            if columns.get('descriptor'): paper_row.append(paper_report.descriptor or '')
-            if columns.get('total'): paper_row.append(str(paper_report.total or ''))
-            if columns.get('average'): paper_row.append(str(paper_report.average or ''))
-            if columns.get('subjectAverage'): paper_row.append('')
-            if columns.get('aggregates'): paper_row.append('')
-            if columns.get('grade'): paper_row.append('')
-            if columns.get('points'): paper_row.append('')
-            if columns.get('subjectTeacher'): paper_row.append('')
-            rows.append(paper_row)
-
-    style.extend([BLACK_GRID, VALIGN_MIDDLE, PADDING_2])
-    ratios = calc_col_ratios(rows)
-    col_widths = col_widths_by_ratio(ratios)
-    table = Table(
-        data=stretch_data(rows), 
-        style=style,
-        colWidths=col_widths
-        )
     return table
 
 
@@ -330,7 +264,7 @@ def create_assessment_body_table(computed_report, columns):
         subject = subject_report.subject
         paper_reports = subject_report.papers
         cols1 = [{'col':'code', 'name':'code'}, {'col':'subject', 'name':'name'}]
-        cols2 = [{'col':'paper', 'name':'description'}, {'col':'assessments', 'name':'scores_string'}, {'col':'score', 'name':'score'}, {'col':'score', 'name':'descriptor'}, {'col':'total', 'name':'total'}, {'col':'average', 'name':'average'}]
+        cols2 = [{'col':'paper', 'name':'description'}, {'col':'assessments', 'name':'scores_string'}, {'col':'score', 'name':'score'}, {'col':'descriptor', 'name':'descriptor'}, {'col':'total', 'name':'total'}, {'col':'average', 'name':'average'}]
         cols3 = [
             {'col':'subjectAverage', 'name':'average'}, {'col':'aggregates', 'name':'aggregate'}, {'col':'grade', 'name':'letter_grade'}, 
             {'col':'points', 'name':'points'}, {'col':'subjectTeacher', 'name':'subject_teacher_initials'}]
@@ -385,3 +319,40 @@ def create_result_table(computed_report, student):
     col_widths = col_widths_by_ratio(ratios)
     table = Table(rows, style=style, colWidths=col_widths)
     return table
+
+
+
+
+
+class ScoresPDF:
+
+    def __init__(self, scores_qs):
+        self.scores_qs = scores_qs
+        score = scores_qs.first()
+        try:
+            self.assessment = score.assessment
+            self.title = Paragraph(f'Assessment: {self.assessment}', heading_style)
+        except AttributeError:
+            self.activity = score.activity
+            self.title = Paragraph(f'Activity: {self.activity}', heading_style)
+
+    def create_scores_table(self):
+        rows = [[str(score.student), str(score.mark)] for score in self.scores_qs]
+        style = [BLACK_GRID]
+        ratios = calc_col_ratios(rows)
+        col_widths = col_widths_by_ratio(ratios)
+        table = Table(rows, style=style, colWidths=col_widths)
+        return table
+    
+    def run(self):
+        header_table = create_header()
+        scores_table = self.create_scores_table()
+        elements = []
+        for el in [header_table, self.title, scores_table]:
+            elements.append(el)
+            elements.append(space)
+        doc = SimpleDocTemplate(
+		f"{settings.MEDIA_ROOT}/scores.pdf", pagesize=A4, rightMargin=20,
+		leftMargin=20, topMargin=20, bottomMargin=20)
+        doc.build(elements)
+        return doc

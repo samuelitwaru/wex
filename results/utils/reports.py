@@ -1,14 +1,8 @@
 from results import models
 
 
-def compute_subject_aggregates(scores=[60, 45, 79]):
-    grading_system = models.GradingSystem.objects.first()
-    aggregates = []
-    for mark in scores:
-        aggregates.append(grading_system.grade(mark))
-    return aggregates
-
 def compute_subject_grade(aggregates=[8,8,3]):
+    '''computes the letter grade for a subject i.e A,B,C,D,E,O and F using the provided aggregates e.g [8,8,3]'''
     n = len(aggregates)
     if n:
         # get worst
@@ -63,10 +57,17 @@ def compute_subject_grade(aggregates=[8,8,3]):
         
 
 def compute_student_report(student, grading_system, period):
+    '''
+    - generates a computed report object for the specified student, using the specified grading system, in the specified period
+    - returns a model report object and a computed report object i.e (report, computed_report)
+    '''
     report, created = models.Report.objects.get_or_create(period=period, student=student)
     computed_report = ComputedReport(student, report, [])
     subjects = models.Subject.objects.filter(is_selectable=False, level_group=student.class_room.level.level_group).union(student.subjects.all())
     for subject in subjects:
+        custom_grading_system = models.CustomGradingSystem.objects.filter(class_room=student.class_room, subject=subject).first()
+        if custom_grading_system:
+            grading_system = custom_grading_system.grading_system
         subject_report = SubjectReport(grading_system, subject, [], [])
         papers = subject.papers.all()
         papers = student.class_room.level.papers.filter(subject=subject)
@@ -96,6 +97,17 @@ def compute_student_report(student, grading_system, period):
 
 
 class ComputedReport:
+    '''
+    A student report object having all information to be presented on the report
+
+    Attributes:
+        student         - model Student object
+        report          - model Report object
+        subject_reports - list of SubjectReport objects
+        points          - total computed points for all subjects
+        aggregates      - total computed aggregates for all subjects
+        average         - computed average for all subjects
+    '''
     subject_reports = []
     points = 0
     aggregates = 0
@@ -131,7 +143,6 @@ class ComputedReport:
 
     def __set_average(self):
         self.average = sum([subj.average for subj in self.subject_reports])/len(self.subject_reports)
-
     
     def set_values(self):
         self.__set_average()
@@ -222,7 +233,7 @@ class PaperReport:
 
 
 class ActivityReport:
-    paper = None
+    activity = None
     scores = []
     def __init__(self, activity, mark):
         self.activity = activity

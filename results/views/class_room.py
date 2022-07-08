@@ -8,6 +8,7 @@ from ..models import ClassRoom, Subject, TeacherClassRoomPaper
 from rest_framework.response import Response
 from rest_framework.decorators import action, api_view
 
+
 class ClassRoomViewSet(viewsets.ModelViewSet):
     queryset = ClassRoom.objects.all()
     serializer_class = ClassRoomSerializer

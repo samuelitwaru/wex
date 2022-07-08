@@ -22,6 +22,7 @@ router.register(r'grading-systems', GradingSystemViewSet)
 router.register(r'scores', ScoreViewSet)
 router.register(r'activity-scores', ActivityScoreViewSet)
 router.register(r'reports', ReportViewSet)
+router.register(r'custom-grading-systems', CustomGradingSystemViewSet)
 router.register(r'teacher-class-room-papers', TeacherClassRoomPaperViewSet)
 # router.register(r'assessments/(?P<assessment_id>\d+)/scores', ScoreViewSet, basename='scores')
 # router.register(r'teachers/(?P<teacher_pk>\d+)/class-room/allocated', get_teacher_allocated_class_rooms)
@@ -32,6 +33,12 @@ nested_teachers_router.register(r'class-rooms', ClassRoomViewSet, basename='teac
 
 nested_assessments_router = routers.NestedSimpleRouter(router, r'assessments', lookup='assessment')
 nested_assessments_router.register(r'scores', ScoreViewSet, basename='assessment-scores')
+nested_assessments_router.register(r'scores/download', ScoreViewSet, basename='assessment-scores-download')
+
+nested_activities_router = routers.NestedSimpleRouter(router, r'activities', lookup='activity')
+nested_activities_router.register(r'scores', ActivityScoreViewSet, basename='activity-scores')
+nested_activities_router.register(r'scores/download', ActivityScoreViewSet, basename='activity-scores-download')
+
 
 nested_levels_router = routers.NestedSimpleRouter(router, r'levels', lookup='level')
 nested_levels_router.register(r'class-rooms', ClassRoomViewSet, basename='level-class-rooms')
@@ -45,6 +52,7 @@ nested_class_rooms_router.register(r'students', StudentViewSet, basename='class-
 nested_url_patterns = [
     path('api/', include(nested_teachers_router.urls)),
     path('api/', include(nested_assessments_router.urls)),
+    path('api/', include(nested_activities_router.urls)),
     path('api/', include(nested_levels_router.urls)),
     path('api/', include(nested_class_rooms_router.urls)),
     path(r'api/teachers/<int:teacher_pk>/allocated-class-rooms/', get_teacher_allocated_class_rooms),

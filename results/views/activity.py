@@ -24,3 +24,20 @@ class ActivityViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(**params.dict())
         count = queryset.count()
         return Response({'count':count})
+    
+    @action(detail=True, methods=['PUT'], name='close', url_path='close')
+    def close(self, request, *args, **kwargs):
+        activity = super().get_queryset().filter(id=kwargs.get('pk')).first()
+        activity.is_open = False
+        activity.save()
+        serializer = self.get_serializer(activity)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['PUT'], name='open_activity', url_path='open')
+    def open_activity(self, request, *args, **kwargs):
+        activity = super().get_queryset().filter(id=kwargs.get('pk')).first()
+        activity.is_open = True 
+        activity.save()
+        serializer = self.get_serializer(activity)
+        return Response(serializer.data)
+    

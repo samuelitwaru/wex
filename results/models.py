@@ -30,6 +30,7 @@ SUBJECT_FIELD_CHOICES = (
         ('Science', 'Science'),
     )
 
+
 LEVEL_GROUP_CHOICES = tuple(LEVEL_GROUPS.items())
 
 PERCENTAGE_VALIDATOR = [MinValueValidator(0), MaxValueValidator(100)]
@@ -127,14 +128,14 @@ class ClassRoom(TimeStampedModel):
         ordering = ('level',)
 
     def __str__(self):
-        return f"{self.name} {self.stream}"
+        return f"{self.name} {self.stream or ''}"
 
 
 class Teacher(TimeStampedModel):
     name = models.CharField(max_length=256)
     initials = models.CharField(max_length=8)
     picture = ResizedImageField(upload_to=teacher_picture_upload_loacation, storage=OverwiteStorageSystem, null=True, blank=True)
-    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='teacher')
     
     def __str__(self):
         return self.name
@@ -171,6 +172,7 @@ class Assessment(TimeStampedModel):
     class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     period = models.ForeignKey(Period, on_delete=models.CASCADE, default=period_default)
+    is_open = models.BooleanField(default=True)
 
     class Meta:
         ordering = ['-id']
@@ -186,10 +188,10 @@ class Activity(TimeStampedModel):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, default=period_default)
     period = models.ForeignKey(Period, on_delete=models.CASCADE, default=period_default)
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
-
+    is_open = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.name
+        return f'{self.class_room} {self.name}'
 
 class ActivityScore(TimeStampedModel):
     activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
@@ -264,6 +266,13 @@ class Report(TimeStampedModel):
         return f'{self.student} - {self.period}'
 
 
+class CustomGradingSystem(TimeStampedModel):
+    class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    grading_system = models.ForeignKey(GradingSystem, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('class_room', 'subject', 'grading_system')
 
 # signals
 from django.db.models.signals import post_save, post_delete

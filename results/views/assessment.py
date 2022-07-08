@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from results.serializers import assessment
 
 from results.serializers.assessment import MiniAssessmentSerializer
 from ..serializers import AssessmentSerializer
@@ -39,4 +40,20 @@ class AssessmentViewSet(viewsets.ModelViewSet):
     def get_latest(self, request, *args, **kwargs):
         queryset = super().get_queryset().last()
         serializer = self.get_serializer(queryset)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['PUT'], name='close', url_path='close')
+    def close(self, request, *args, **kwargs):
+        assessment = super().get_queryset().filter(id=kwargs.get('pk')).first()
+        assessment.is_open = False
+        assessment.save()
+        serializer = self.get_serializer(assessment)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['PUT'], name='open_assessment', url_path='open')
+    def open_assessment(self, request, *args, **kwargs):
+        assessment = super().get_queryset().filter(id=kwargs.get('pk')).first()
+        assessment.is_open = True 
+        assessment.save()
+        serializer = self.get_serializer(assessment)
         return Response(serializer.data)
