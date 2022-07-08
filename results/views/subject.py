@@ -3,7 +3,7 @@ from results.filters import SubjectFilter
 from results.serializers.subject import MiniSubjectSerializer
 
 from results.utils import SUBJECTS
-from ..models import Subject, TeacherClassRoomPaper
+from ..models import Subject, PaperAllocation
 from ..serializers import SubjectSerializer
 from rest_framework.response import Response
 from rest_framework.decorators import action, api_view
@@ -63,7 +63,7 @@ class SubjectViewSet(viewsets.ModelViewSet):
 
 @api_view(['GET'])
 def get_teacher_subjects(request, teacher_pk):
-    class_room_paper_ids = [class_room_paper.paper_id for class_room_paper in TeacherClassRoomPaper.objects.filter(teacher=teacher_pk)]
+    class_room_paper_ids = [class_room_paper.paper_id for class_room_paper in PaperAllocation.objects.filter(teacher=teacher_pk)]
     queryset = Subject.objects.filter(papers__in=class_room_paper_ids)
     params = request.GET
     if params:
@@ -74,7 +74,7 @@ def get_teacher_subjects(request, teacher_pk):
 
 @api_view(['GET'])
 def get_teacher_allocated_class_room_subjects(request, teacher_pk, class_room_pk):
-    subject_ids = [class_room_paper.paper.subject.id for class_room_paper in TeacherClassRoomPaper.objects.filter(teacher=teacher_pk, class_room=class_room_pk)]
+    subject_ids = [class_room_paper.paper.subject.id for class_room_paper in PaperAllocation.objects.filter(teacher=teacher_pk, class_room=class_room_pk)]
     queryset = Subject.objects.filter(id__in=subject_ids)
     params = request.GET
     if params:

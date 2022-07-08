@@ -10,7 +10,7 @@ from .level import *
 from .grading_system import *
 from .score import *
 from .activity_score import *
-from .teacher_class_room_subject import *
+from .paper_allocation import *
 from .report import *
 from .level_group import *
 from .activity import *

@@ -23,7 +23,7 @@ router.register(r'scores', ScoreViewSet)
 router.register(r'activity-scores', ActivityScoreViewSet)
 router.register(r'reports', ReportViewSet)
 router.register(r'custom-grading-systems', CustomGradingSystemViewSet)
-router.register(r'teacher-class-room-papers', TeacherClassRoomPaperViewSet)
+router.register(r'paper-allocations', PaperAllocationViewSet)
 # router.register(r'assessments/(?P<assessment_id>\d+)/scores', ScoreViewSet, basename='scores')
 # router.register(r'teachers/(?P<teacher_pk>\d+)/class-room/allocated', get_teacher_allocated_class_rooms)
 

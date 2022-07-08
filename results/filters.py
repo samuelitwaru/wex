@@ -1,5 +1,5 @@
 import django_filters
-from .models import LevelGroup, Report, Subject
+from .models import LevelGroup, PaperAllocation, Report, Subject
 
 class ReportFilter(django_filters.FilterSet):
     class_teacher_commented =django_filters.CharFilter(field_name='class_teacher_comment', method='class_teacher_commented_filter')
@@ -37,4 +37,18 @@ class SubjectFilter(django_filters.FilterSet):
         if level_group:
             return queryset.filter(level_group=level_group)
         return queryset
+
+
+class PaperAllocationFilter(django_filters.FilterSet):
+    teacher = django_filters.CharFilter(field_name='teacher', method='teacher_filter')
+    
+    class Meta:
+        model = PaperAllocation
+        fields = ('paper__subject', 'paper', 'teacher', 'class_room')
+    
+    def teacher_filter(self, queryset, name, value):
+        if value == '0':
+            return queryset.filter(teacher=None)
+        else:
+            return queryset.filter(teacher=value)
         

@@ -4,7 +4,7 @@ from rest_framework import viewsets
 from results.serializers import teacher
 from results.serializers.class_room import MiniClassRoomSerializer
 from ..serializers import ClassRoomSerializer
-from ..models import ClassRoom, Subject, TeacherClassRoomPaper
+from ..models import ClassRoom, Subject, PaperAllocation
 from rest_framework.response import Response
 from rest_framework.decorators import action, api_view
 
@@ -38,7 +38,7 @@ class ClassRoomViewSet(viewsets.ModelViewSet):
 
 @api_view(['GET'])
 def get_teacher_allocated_class_rooms(request, teacher_pk):
-    class_room_ids = [class_room_paper.class_room_id for class_room_paper in TeacherClassRoomPaper.objects.filter(teacher=teacher_pk)]
+    class_room_ids = [class_room_paper.class_room_id for class_room_paper in PaperAllocation.objects.filter(teacher=teacher_pk)]
     queryset = ClassRoom.objects.filter(id__in=class_room_ids)
     params = request.GET
     if params:
@@ -49,7 +49,7 @@ def get_teacher_allocated_class_rooms(request, teacher_pk):
 
 @api_view(['GET'])
 def get_teacher_allocated_class_room(request, teacher_pk, class_room_pk):
-    class_room_ids = [class_room_paper.class_room_id for class_room_paper in TeacherClassRoomPaper.objects.filter(teacher=teacher_pk)]
+    class_room_ids = [class_room_paper.class_room_id for class_room_paper in PaperAllocation.objects.filter(teacher=teacher_pk)]
     queryset = ClassRoom.objects.filter(id__in=class_room_ids)
     params = request.GET
     if params:

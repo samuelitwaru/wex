@@ -141,13 +141,14 @@ class Teacher(TimeStampedModel):
         return self.name
 
 
-class TeacherClassRoomPaper(TimeStampedModel):
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+class PaperAllocation(TimeStampedModel):
     class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
     paper = models.ForeignKey(Paper, on_delete=models.CASCADE)
+    teacher = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True, blank=True)
     
     class Meta:
         unique_together = ('teacher', 'class_room', 'paper')
+        ordering=['class_room__level']
 
 
 class Student(TimeStampedModel):
@@ -258,7 +259,7 @@ class Report(TimeStampedModel):
     level = models.ForeignKey(Level, on_delete=models.CASCADE, related_name='reports')
 
     class Meta:
-        unique_together = ('student', 'period')
+        unique_together = ('student', 'period', 'level')
         ordering = ['level']
 
     
@@ -305,9 +306,15 @@ def enforce_grading_system_one_default(sender, instance, **kwargs):
         new_default = GradingSystem.objects.filter(level_group=instance.level_group).first()
         if new_default: new_default.is_default=True; new_default.save()
 
+def create_paper_allocations(sender, instance, **kwargs):
+    levels = instance.subject.level_group.level_set.all()
+    for level in levels:
+        class_rooms = level.classroom_set.all()
+        for class_room in class_rooms:
+            PaperAllocation.objects.get_or_create(paper=instance, class_room=class_room)
 
 
-
+post_save.connect(create_paper_allocations, sender=Paper)
 post_save.connect(create_student_report, sender=Student)
 post_save.connect(create_subject_papers, sender=Subject)
 post_save.connect(enforce_grading_system_one_default, sender=GradingSystem)

@@ -71,7 +71,7 @@ def compute_student_report(student, grading_system, period):
         subject_report = SubjectReport(grading_system, subject, [], [])
         papers = subject.papers.all()
         papers = student.class_room.level.papers.filter(subject=subject)
-        allocation = models.TeacherClassRoomPaper.objects.filter(paper=papers.first(), class_room=student.class_room).first()
+        allocation = models.PaperAllocation.objects.filter(paper=papers.first(), class_room=student.class_room).first()
         if allocation: subject_report.teacher = allocation.teacher
         for paper in papers:
             assessment_ids = [assessment.id for assessment in models.Assessment.objects.filter(paper=paper, period=period, class_room=student.class_room)]

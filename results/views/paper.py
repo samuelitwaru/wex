@@ -1,5 +1,5 @@
 from rest_framework import viewsets
-from ..models import Paper, TeacherClassRoomPaper
+from ..models import Paper, PaperAllocation
 from ..serializers import PaperSerializer
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
@@ -24,7 +24,7 @@ class PaperViewSet(viewsets.ModelViewSet):
 
 @api_view(['GET'])
 def get_teacher_allocated_papers(request, teacher_pk):
-    class_room_paper_ids = [class_room_paper.paper_id for class_room_paper in TeacherClassRoomPaper.objects.filter(teacher=teacher_pk)]
+    class_room_paper_ids = [class_room_paper.paper_id for class_room_paper in PaperAllocation.objects.filter(teacher=teacher_pk)]
     queryset = Paper.objects.filter(id__in=class_room_paper_ids)
     params = request.GET
     if params:

@@ -1,13 +1,13 @@
 from rest_framework import serializers
 
 from core.serializers.user import UserSerializer
-from ..models import Teacher, TeacherClassRoomPaper
+from ..models import Teacher, PaperAllocation
 
 
-class TeacherClassRoomPaperSerializer(serializers.ModelSerializer):
+class PaperAllocationSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = TeacherClassRoomPaper
+        model = PaperAllocation
         fields = '__all__'
 
 
