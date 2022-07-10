@@ -30,6 +30,11 @@ SUBJECT_FIELD_CHOICES = (
         ('Science', 'Science'),
     )
 
+PROMOTION_STATUS_CHOICES = [
+    ('PENDING', 'PENDING'),
+    ('APPROVED', 'APPROVED'),
+]
+
 
 LEVEL_GROUP_CHOICES = tuple(LEVEL_GROUPS.items())
 
@@ -62,6 +67,8 @@ class Period(TimeStampedModel):
     name = models.CharField(max_length=128)
     start = models.DateField()
     stop = models.DateField()
+    is_promotional = models.BooleanField(default=False)
+    promotions_opened = models.BooleanField(default=False)
 
     class Meta:
         get_latest_by = 'created_at'
@@ -253,6 +260,8 @@ class Report(TimeStampedModel):
     period = models.ForeignKey(Period, on_delete=models.CASCADE, default=period_default)
     class_teacher_comment = models.CharField(max_length=512, blank=True)
     head_teacher_comment = models.CharField(max_length=512, blank=True)
+    activity_class_teacher_comment = models.CharField(max_length=512, blank=True)
+    activity_head_teacher_comment = models.CharField(max_length=512, blank=True)
     computation = models.JSONField(null=True)
     aggregates = models.IntegerField(default=72, validators=O_RESULT_VALIDATOR)
     points = models.IntegerField(default=0, validators=A_RESULT_VALIDATOR)
@@ -266,6 +275,20 @@ class Report(TimeStampedModel):
     def __str__(self):
         return f'{self.student} - {self.period}'
 
+
+class Promotion(TimeStampedModel):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    current_class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE, related_name='promotions_from')
+    next_class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE, related_name='promotions_to')
+    period = models.ForeignKey(Period, on_delete=models.CASCADE, default=period_default)
+    status = models.CharField(max_length=16, choices=PROMOTION_STATUS_CHOICES, default=PROMOTION_STATUS_CHOICES[0][0])
+    rejection_comment = models.CharField(max_length=512, null=True, blank=True)
+
+    class Meta:
+        unique_together = ('student', 'current_class_room', 'next_class_room', 'period')
+    
+    def __str__(self):
+        return f'{self.student} - {self.next_class_room} {self.status}'
 
 class CustomGradingSystem(TimeStampedModel):
     class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)

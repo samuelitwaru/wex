@@ -1,4 +1,6 @@
 from rest_framework import viewsets
+
+from results.serializers import period
 from ..models import Period
 from ..serializers import PeriodSerializer
 from rest_framework.response import Response
@@ -20,3 +22,22 @@ class PeriodViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset().last()
         serializer = self.get_serializer(queryset)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['PUT'], name='open_promotions', url_path='latest/open-promotions')
+    def open_promotions(self, request, *args, **kwargs):
+        period = super().get_queryset().last()
+        if period.is_promotional:
+            period.promotions_opened = True    
+            period.save()
+        serializer = self.get_serializer(period)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['PUT'], name='close_promotions', url_path='latest/close-promotions')
+    def close_promotions(self, request, *args, **kwargs):
+        period = super().get_queryset().last()
+        if period.is_promotional:
+            period.promotions_opened = False   
+            period.save()
+        serializer = self.get_serializer(period)
+        return Response(serializer.data)
+    
