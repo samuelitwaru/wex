@@ -1,6 +1,7 @@
 from email.policy import default
+from unicodedata import category
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.forms import JSONField
@@ -165,7 +166,7 @@ class Student(TimeStampedModel):
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     dob = models.DateField()
     picture = ResizedImageField(upload_to=student_picture_upload_loacation, storage=OverwiteStorageSystem, null=True, blank=True)
-    class_room = models.ForeignKey(ClassRoom, on_delete=models.SET_NULL, null=True, blank=True)
+    class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
     subjects = models.ManyToManyField('Subject', related_name='students', blank=True)
 
     def __str__(self):
@@ -193,7 +194,7 @@ class Activity(TimeStampedModel):
     name = models.CharField(max_length=64)
     skills = models.JSONField()
     class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, default=period_default)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     period = models.ForeignKey(Period, on_delete=models.CASCADE, default=period_default)
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     is_open = models.BooleanField(default=True)
@@ -267,8 +268,13 @@ class Report(TimeStampedModel):
     points = models.IntegerField(default=0, validators=A_RESULT_VALIDATOR)
     level = models.ForeignKey(Level, on_delete=models.CASCADE, related_name='reports')
 
+    promo_from_class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE, null=True, related_name='promotions_from')
+    promo_to_class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE, null=True, related_name='promotions_to')
+    promo_comment = models.CharField(max_length=512, null=True, blank=True)
+    promo_is_approved = models.BooleanField(default=False)
+
     class Meta:
-        unique_together = ('student', 'period', 'level')
+        unique_together = ('student', 'period', 'level', 'promo_from_class_room', 'promo_to_class_room')
         ordering = ['level']
 
     
@@ -276,19 +282,19 @@ class Report(TimeStampedModel):
         return f'{self.student} - {self.period}'
 
 
-class Promotion(TimeStampedModel):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    current_class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE, related_name='promotions_from')
-    next_class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE, related_name='promotions_to')
-    period = models.ForeignKey(Period, on_delete=models.CASCADE, default=period_default)
-    status = models.CharField(max_length=16, choices=PROMOTION_STATUS_CHOICES, default=PROMOTION_STATUS_CHOICES[0][0])
-    rejection_comment = models.CharField(max_length=512, null=True, blank=True)
+# class Promotion(TimeStampedModel):
+#     student = models.ForeignKey(Student, on_delete=models.CASCADE)
+#     current_class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE, related_name='promotions_from')
+#     next_class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE, related_name='promotions_to')
+#     period = models.ForeignKey(Period, on_delete=models.CASCADE, default=period_default)
+#     status = models.CharField(max_length=16, choices=PROMOTION_STATUS_CHOICES, default=PROMOTION_STATUS_CHOICES[0][0])
+#     rejection_comment = models.CharField(max_length=512, null=True, blank=True)
 
-    class Meta:
-        unique_together = ('student', 'current_class_room', 'next_class_room', 'period')
+#     class Meta:
+#         unique_together = ('student', 'current_class_room', 'next_class_room', 'period')
     
-    def __str__(self):
-        return f'{self.student} - {self.next_class_room} {self.status}'
+#     def __str__(self):
+#         return f'{self.student} - {self.next_class_room} {self.status}'
 
 class CustomGradingSystem(TimeStampedModel):
     class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
@@ -297,6 +303,15 @@ class CustomGradingSystem(TimeStampedModel):
 
     class Meta:
         unique_together = ('class_room', 'subject', 'grading_system')
+
+
+# class Functionality(models.Model):
+#     model = models.CharField(max_length=64, choices=[])
+#     category = models.CharField(max_length=1, choices=[(cat,cat) for cat in 'CRUD'])
+#     function = models.CharField(max_length=512)
+#     group = models.CharField(max_length=32)
+#     limitation = models.CharField(max_length=512)
+
 
 # signals
 from django.db.models.signals import post_save, post_delete
@@ -309,7 +324,12 @@ def create_student_report(sender, instance, **kwargs):
 def create_subject_papers(sender, instance, **kwargs):
     if kwargs.get('created'):
         no_papers = instance.no_papers
-        papers = Paper.objects.bulk_create([Paper(**{'number': n+1, 'description':f'Paper {n+1}', 'subject':instance}) for n in range(0, no_papers)])
+        papers = []
+        for n in range(0, no_papers):
+            paper = Paper(**{'number': n+1, 'description':f'Paper {n+1}', 'subject':instance})
+            paper.save()
+            papers.append(paper)
+        # papers = Paper.objects.bulk_create([Paper(**{'number': n+1, 'description':f'Paper {n+1}', 'subject':instance}) for n in range(0, no_papers)])
         for level in instance.level_group.level_set.all():
             level.papers.add(*papers)
 

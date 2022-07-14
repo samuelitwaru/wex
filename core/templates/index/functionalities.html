@@ -1,0 +1,24 @@
+{% extends 'base.html' %} 
+{% load static %} 
+
+{% load app_tags %} 
+{% block body %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Model</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for model, cats in data.items %}
+        <tr>
+            <td scope="row">{{model}}</td>
+            <td>
+                <a class="nav-link active" href="{% url 'core:model_functionalities' group=group model=model %}"><i class="fa fa-edit"></i></a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

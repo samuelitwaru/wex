@@ -14,5 +14,7 @@ router.register(r'metrics', MetricViewSet)
 
 urlpatterns = [
     path('', index, name='index'),
+    path('functionalities/<str:group>', functionalities, name='functionalities'),
+    path('functionalities/<str:group>/<str:model>', model_functionalities, name='model_functionalities'),
     path('user/set/<str:token_key>', set_user, name='set_user'),
 ]

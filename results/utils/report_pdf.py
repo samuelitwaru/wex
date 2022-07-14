@@ -1,7 +1,7 @@
 from django.conf import settings
 from reportlab.lib.pagesizes import A4, inch, landscape, portrait
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
+from reportlab.platypus import PageBreak, SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
 from reportlab.lib.enums import TA_LEFT, TA_CENTER
 from reportlab.lib import colors
 from os.path import exists
@@ -150,8 +150,10 @@ class PDFReport:
         self.computed_report = computed_report
         self.report_type = report_type
         self.columns = columns
+        self.elements = []
     
-    def run(self):
+    def create_elements(self):
+        self.elements = []
         entity_table = self.create_entity_table()
         student_table = self.create_student_table()
         if self.report_type == 'assessment':
@@ -159,22 +161,24 @@ class PDFReport:
         else:
             body_table = self.create_activity_body_table()
         comment_table = self.create_comment_table()
+        self.elements.append(entity_table)
+        self.elements.append(space)
+        self.elements.append(student_table)
+        self.elements.append(space)
+        self.elements.append(body_table)
+        self.elements.append(space)
+        if self.report_type == 'assessment':
+            result_table = self.create_result_table()
+            self.elements.append(result_table)
+        self.elements.append(space)
+        self.elements.append(comment_table)
+
+    def run(self):
+        self.create_elements()
         doc = SimpleDocTemplate(
 		f"{settings.MEDIA_ROOT}/{self.computed_report.student.id}.pdf", pagesize=A4, rightMargin=20,
 		leftMargin=20, topMargin=20, bottomMargin=20)
-        elements = []
-        elements.append(entity_table)
-        elements.append(space)
-        elements.append(student_table)
-        elements.append(space)
-        elements.append(body_table)
-        elements.append(space)
-        if self.report_type == 'assessment':
-            result_table = self.create_result_table()
-            elements.append(result_table)
-        elements.append(space)
-        elements.append(comment_table)
-        doc.build(elements)
+        doc.build(self.elements)
         return doc
 
     def create_entity_table(self):
@@ -356,3 +360,32 @@ class ScoresPDF:
 		leftMargin=20, topMargin=20, bottomMargin=20)
         doc.build(elements)
         return doc
+
+
+
+class BulkPDFReport:
+
+    def __init__(self, computed_reports, report_type, columns):
+        self.computed_reports = computed_reports
+        self.report_type = report_type
+        self.columns = columns
+        self.elements = []
+    
+    def create_elements(self):
+        self.elements = []
+        for computed_report in self.computed_reports:
+            report = PDFReport(computed_report, self.report_type, self.columns)
+            report.create_elements()
+            self.elements += report.elements 
+            self.elements.append(PageBreak())
+            # insert page break into elements
+
+    def run(self):
+        self.create_elements()
+        doc = SimpleDocTemplate(
+		f"{settings.MEDIA_ROOT}/class.pdf", pagesize=A4, rightMargin=20,
+		leftMargin=20, topMargin=20, bottomMargin=20)
+        doc.build(self.elements)
+        return doc
+
+    

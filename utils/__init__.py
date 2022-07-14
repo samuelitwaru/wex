@@ -1,6 +1,9 @@
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from .authentication import *
+from io import StringIO
+from rest_framework.parsers import JSONParser
+import json
 
 class OverwiteStorageSystem(FileSystemStorage):
     

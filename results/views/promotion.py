@@ -49,3 +49,12 @@ class PromotionViewSet(viewsets.ModelViewSet):
         queryset.update(**{'status': 'APPROVED'})
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['PUT'], name='reject', url_path='reject')
+    def reject(self, request, *args, **kwargs):
+        data = request.data
+        promotions = data.get('promotions')
+        queryset = Promotion.objects.filter(id__in=promotions)
+        queryset.update(**{'status': 'REJECTED'})
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

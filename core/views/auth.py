@@ -3,7 +3,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.http import HttpResponse, HttpResponseNotFound
 
 from results.models import Teacher
@@ -13,6 +13,8 @@ from django.contrib import messages
 
 
 class AuthLoginView(ObtainAuthToken):
+
+    # permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,
@@ -47,10 +49,6 @@ class AuthLogoutView(APIView):
             if token: token.delete()
         
         return Response({}, status=status.HTTP_200_OK)
-
-
-def index(request):
-    return render(request, 'index/index.html')
     
 
 def set_user(request, token_key):

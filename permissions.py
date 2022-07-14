@@ -10,5 +10,12 @@ class HasGroup(permissions.BasePermission):
         self.group = group
 
     def has_permission(self, request, view):
-        print(request.user)
         return bool(request.user.groups.filter(name=self.group))
+
+
+class DeletePermission(permissions.BasePermission):
+    
+    def has_permission(self, request, view):
+        if request.method == 'DELETE':
+            return request.user.is_superuser or request.user.groups.filter(name='dos')
+        return True

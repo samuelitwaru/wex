@@ -1,41 +1,36 @@
+import json
 from django.http import FileResponse
 from rest_framework import viewsets
 from results.serializers.report import ComputedReportSerializer
 from utils import get_host_name
-
 from results.utils import compute_student_report
-from results.utils.report_pdf import PDFReport, build_document
-from ..models import GradingSystem, Period, Report, Student
+from results.utils.report_pdf import BulkPDFReport, PDFReport, build_document
+from ..models import ClassRoom, GradingSystem, Period, Report, Student
 from ..serializers import ReportSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from ..filters import ReportFilter
-from django_filters import rest_framework as filters
 import os
-
 
 
 class ReportViewSet(viewsets.ModelViewSet):
     queryset = Report.objects.all()
     serializer_class = ReportSerializer
-    filter_backends = (filters.DjangoFilterBackend,)
-    filter_class = ReportFilter
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        f = ReportFilter(self.request.GET, queryset=queryset)
-        queryset = f.queryset
-        # params = self.request.query_params
-        # if params:
-        #     queryset = queryset.filter(**params.dict())
+        class_room_pk = self.kwargs.get('class_room_pk')
+        if class_room_pk:
+            queryset = queryset.filter(promo_from_class_room=class_room_pk)
+        params = self.request.query_params
+        f = ReportFilter(queryset, params)
+        queryset = f.filter()
         return queryset
 
     @action(detail=False, methods=['GET'], name='get_count', url_path='count')
     def get_count(self, request, *args, **kwargs):
-        params = self.request.query_params
-        queryset = super().get_queryset()
-        if params:
-            queryset = queryset.filter(**params.dict())
+        # print('doing')
+        queryset = self.get_queryset()
         count = queryset.count()
         return Response({'count':count})
     
@@ -110,4 +105,63 @@ class ReportViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(head_teacher_comment="")
         queryset.update(**data)
         serializer = self.get_serializer(queryset1, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['POST'], name='download_class_room_report', url_path=r'computed/class-rooms/(?P<class_room_id>[\w-]+)/download') 
+    def download_class_room_reports(self, request, *args, **kwargs):
+        data = self.request.data
+        params = self.request.query_params
+        
+        period = Period.objects.filter(id=params.get('period')).first()
+        if not period:
+            period = Period.objects.latest()
+
+        class_room = ClassRoom.objects.filter(id=kwargs.get('class_room_id')).first()
+        grading_system = GradingSystem.objects.filter(is_default=True, level_group=class_room.level.level_group).first()
+        students = Student.objects.filter(class_room=class_room).all()
+        computed_reports = [compute_student_report(stud, grading_system, period)[1] for stud in students]
+        report_type = data.get('report_type', 'assessment')
+        columns = data.get('columns', {'code':True})
+        bulk_report = BulkPDFReport(computed_reports, report_type, columns)
+        doc = bulk_report.run()
+        filename = os.path.basename(doc.filename)
+        host = get_host_name(request)
+        file_url = f'{host}/media/{filename}'
+        return Response({'file_url': file_url})
+
+    @action(detail=False, methods=['POST'], name='add_promotions', url_path='promotions/add')
+    def add_promotions(self, request, *args, **kwargs):
+        data = request.data
+        report_ids = data.get('reports')
+        to_class_room = data.get('promo_to_class_room')
+        from_class_room = data.get('promo_from_class_room')
+        report_qs = Report.objects.filter(id__in=report_ids)
+        report_qs.update(promo_from_class_room=from_class_room, promo_to_class_room=to_class_room)
+        # if reports:
+        #     students = [report.student for report in Report.objects.filter(id__in=reports).all()]
+        #     promotions = []
+        #     for stud in students:
+        #         promotion, created= Promotion.objects.get_or_create(student=stud, current_class_room=stud.class_room, next_class_room_id=next_class_room) 
+        #         promotions.append(promotion)
+        #     print(promotions)
+        serializer = self.get_serializer(report_qs, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['PUT'], name='approve_promotions', url_path='approve')
+    def approve_promotions(self, request, *args, **kwargs):
+        data = request.data
+        report_ids = data.get('promotions')
+        print(report_ids)
+        report_qs = Report.objects.filter(id__in=report_ids)
+        report_qs.update(promo_is_approved=True)
+        serializer = self.get_serializer(report_qs, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['PUT'], name='reject_promotions', url_path='reject')
+    def reject_promotions(self, request, *args, **kwargs):
+        data = request.data
+        report_ids = data.get('promotions')
+        report_qs = Report.objects.filter(id__in=report_ids)
+        report_qs.update(promo_is_approved=False)
+        serializer = self.get_serializer(report_qs, many=True)
         return Response(serializer.data)

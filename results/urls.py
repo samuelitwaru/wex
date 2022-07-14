@@ -22,7 +22,7 @@ router.register(r'grading-systems', GradingSystemViewSet)
 router.register(r'scores', ScoreViewSet)
 router.register(r'activity-scores', ActivityScoreViewSet)
 router.register(r'reports', ReportViewSet)
-router.register(r'promotions', PromotionViewSet)
+# router.register(r'promotions', PromotionViewSet)
 router.register(r'custom-grading-systems', CustomGradingSystemViewSet)
 router.register(r'paper-allocations', PaperAllocationViewSet)
 # router.register(r'assessments/(?P<assessment_id>\d+)/scores', ScoreViewSet, basename='scores')
@@ -50,7 +50,7 @@ nested_levels_router.register(r'subjects', SubjectViewSet, basename='level-subje
 
 nested_class_rooms_router = routers.NestedSimpleRouter(router, r'class-rooms', lookup='class_room')
 nested_class_rooms_router.register(r'students', StudentViewSet, basename='class-room-students')
-nested_class_rooms_router.register(r'promotions', PromotionViewSet, basename='class-room-promotions')
+nested_class_rooms_router.register(r'promotions', ReportViewSet, basename='class-room-promotions')
 
 
 nested_url_patterns = [
