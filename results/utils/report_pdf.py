@@ -86,7 +86,6 @@ def create_header(title=None):
     if title:
         rows.append(['',  style_paragraph(title.upper(), heading_style2)])
     len_rows = len(rows)
-    print(len_rows, title)
     style = [
         ('SPAN', (0, 0), (0, len_rows-1)),
         ('LEFTPADDING', (0, 0), (0, len_rows-1), 0)
@@ -352,7 +351,7 @@ def create_result_table(computed_report, student):
 
 
 def insert_water_mark(canvas, doc):
-    path = '/home/samuelitwaru/Pictures/mvara.png'
+    path = f'{settings.MEDIA_ROOT}mvara.png'
     canvas.saveState()
     canvas.drawImage(path, 120, 250, width=400, height=400, mask='auto')
 
