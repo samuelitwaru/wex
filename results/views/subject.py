@@ -16,9 +16,12 @@ class SubjectViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        level_pk = self.kwargs.get('level_pk')
-        if level_pk:
-            queryset = queryset.filter(level_group=level_pk)
+        # level_pk = self.kwargs.get('level_pk')
+        level_group_pk = self.kwargs.get('level_group_pk')
+        if level_group_pk:
+            queryset = queryset.filter(level_group=level_group_pk)
+        # elif level_pk:
+        #     queryset = queryset.filter(level_group__level=level_pk)
         params = self.request.query_params
         if params:
             queryset = queryset.filter(**params.dict())
@@ -26,10 +29,7 @@ class SubjectViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'], name='get_count', url_path='count')
     def get_count(self, request, *args, **kwargs):
-        params = self.request.query_params
-        queryset = super().get_queryset()
-        if params:
-            queryset = queryset.filter(**params.dict())
+        queryset = self.get_queryset()
         count = queryset.count()
         return Response({'count':count})
 

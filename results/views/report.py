@@ -4,7 +4,7 @@ from rest_framework import viewsets
 from results.serializers.report import ComputedReportSerializer
 from utils import get_host_name
 from results.utils import compute_student_report
-from results.utils.report_pdf import BulkPDFReport, PDFReport, build_document
+from results.utils.report_pdf import BulkPDFReport, PDFReport
 from ..models import ClassRoom, GradingSystem, Period, Report, Student
 from ..serializers import ReportSerializer
 from rest_framework.decorators import action
@@ -29,7 +29,6 @@ class ReportViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'], name='get_count', url_path='count')
     def get_count(self, request, *args, **kwargs):
-        # print('doing')
         queryset = self.get_queryset()
         count = queryset.count()
         return Response({'count':count})
@@ -61,7 +60,6 @@ class ReportViewSet(viewsets.ModelViewSet):
         grading_system = GradingSystem.objects.filter(is_default=True, level_group=level_group).first()
         report, computed_report = compute_student_report(student, grading_system, period)
         serializer = ComputedReportSerializer(computed_report)
-        # doc = build_document(computed_report)
         columns = request.data.get('columns')
         report_type = request.data.get('report_type')
         pdf_report = PDFReport(computed_report, report_type=report_type, columns=columns)
@@ -137,13 +135,6 @@ class ReportViewSet(viewsets.ModelViewSet):
         from_class_room = data.get('promo_from_class_room')
         report_qs = Report.objects.filter(id__in=report_ids)
         report_qs.update(promo_from_class_room=from_class_room, promo_to_class_room=to_class_room)
-        # if reports:
-        #     students = [report.student for report in Report.objects.filter(id__in=reports).all()]
-        #     promotions = []
-        #     for stud in students:
-        #         promotion, created= Promotion.objects.get_or_create(student=stud, current_class_room=stud.class_room, next_class_room_id=next_class_room) 
-        #         promotions.append(promotion)
-        #     print(promotions)
         serializer = self.get_serializer(report_qs, many=True)
         return Response(serializer.data)
     
@@ -151,7 +142,6 @@ class ReportViewSet(viewsets.ModelViewSet):
     def approve_promotions(self, request, *args, **kwargs):
         data = request.data
         report_ids = data.get('promotions')
-        print(report_ids)
         report_qs = Report.objects.filter(id__in=report_ids)
         report_qs.update(promo_is_approved=True)
         serializer = self.get_serializer(report_qs, many=True)

@@ -22,11 +22,8 @@ router.register(r'grading-systems', GradingSystemViewSet)
 router.register(r'scores', ScoreViewSet)
 router.register(r'activity-scores', ActivityScoreViewSet)
 router.register(r'reports', ReportViewSet)
-# router.register(r'promotions', PromotionViewSet)
 router.register(r'custom-grading-systems', CustomGradingSystemViewSet)
 router.register(r'paper-allocations', PaperAllocationViewSet)
-# router.register(r'assessments/(?P<assessment_id>\d+)/scores', ScoreViewSet, basename='scores')
-# router.register(r'teachers/(?P<teacher_pk>\d+)/class-room/allocated', get_teacher_allocated_class_rooms)
 
 nested_teachers_router = routers.NestedSimpleRouter(router, r'teachers', lookup='teacher')
 nested_teachers_router.register(r'assessments', AssessmentViewSet, basename='teacher-assessments')
@@ -40,13 +37,12 @@ nested_activities_router = routers.NestedSimpleRouter(router, r'activities', loo
 nested_activities_router.register(r'scores', ActivityScoreViewSet, basename='activity-scores')
 nested_activities_router.register(r'scores/download', ActivityScoreViewSet, basename='activity-scores-download')
 
-
 nested_levels_router = routers.NestedSimpleRouter(router, r'levels', lookup='level')
 nested_levels_router.register(r'class-rooms', ClassRoomViewSet, basename='level-class-rooms')
-nested_levels_router.register(r'subjects', SubjectViewSet, basename='level-subjects')
+# nested_levels_router.register(r'subjects', SubjectViewSet, basename='level-subjects')
 
-# nested_promotions_router = routers.NestedSimpleRouter(router, r'promotions', lookup='promotion')
-# nested_promotions_router.register(r'class-rooms', ClassRoomViewSet, basename='level-class-rooms')
+nested_level_groups_router = routers.NestedSimpleRouter(router, r'level-groups', lookup='level_group')
+nested_level_groups_router.register(r'subjects', SubjectViewSet, basename='level-group-subjects')
 
 nested_class_rooms_router = routers.NestedSimpleRouter(router, r'class-rooms', lookup='class_room')
 nested_class_rooms_router.register(r'students', StudentViewSet, basename='class-room-students')
@@ -59,6 +55,7 @@ nested_url_patterns = [
     path('api/', include(nested_activities_router.urls)),
     path('api/', include(nested_levels_router.urls)),
     path('api/', include(nested_class_rooms_router.urls)),
+    path('api/', include(nested_level_groups_router.urls)),
     path(r'api/teachers/<int:teacher_pk>/allocated-class-rooms/', get_teacher_allocated_class_rooms),
     path(r'api/teachers/<int:teacher_pk>/allocated-class-rooms/<int:class_room_pk>/', get_teacher_allocated_class_room),
     path(r'api/teachers/<int:teacher_pk>/allocated-papers/', get_teacher_allocated_papers),

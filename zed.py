@@ -17,11 +17,15 @@ class NumberedCanvas(canvas.Canvas):
         for state in self._saved_page_states:
             self.__dict__.update(state)
             page_num = self._pageNumber
-            self.drawImage('/home/samuelitwaru/Pictures/cafe-javas.png', 0,0, width=None,height=None,mask=None)
+            self.drawImage
+            self.drawImage('/home/samuelitwaru/Pictures/mvara.jpg', 100,
+                           700, width=None, height=None, 
+                           mask='auto')
             # mybarcode = createBarcodeDrawing('QR', value= 'www.mousevspython.com - Page %s'%page_num)
             # self.drawInlineImage(mybarcode,20,20)
             canvas.Canvas.showPage(self)
         canvas.Canvas.save(self)
+
 
 def main():
     import sys
@@ -30,8 +34,8 @@ def main():
     from reportlab.platypus import SimpleDocTemplate, Image, Paragraph, PageBreak
     from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 
-    #This is needed because ReportLab accepts the StringIO as a file-like object,
-    #but doesn't accept urllib2.urlopen's return value
+    # This is needed because ReportLab accepts the StringIO as a file-like object,
+    # but doesn't accept urllib2.urlopen's return value
     # def get_image(url):
     #     u = urllib2.urlopen(url)
     #     return StringIO(u.read())
@@ -47,13 +51,14 @@ def main():
         fn = "filename.pdf"
     doc = SimpleDocTemplate(open(fn, "wb"))
     elements = [
-        Paragraph("Hello,", styleN),
-        Image("/home/samuelitwaru/Pictures/face.png"),
-        PageBreak(),
+        Paragraph(
+            "Hellodfdfdfdfdfddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd,", styleN),
+        Image("/home/samuelitwaru/Pictures/mvara.jpg"),
         Paragraph("world!", styleN),
-        Image("/home/samuelitwaru/Pictures/face.png"),
+        Image("/home/samuelitwaru/Pictures/mvara.jpg"),
     ]
     doc.build(elements, canvasmaker=NumberedCanvas)
+
 
 if __name__ == "__main__":
     main()

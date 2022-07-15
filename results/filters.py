@@ -1,13 +1,9 @@
 import django_filters
 from .models import LevelGroup, PaperAllocation, Report, Subject
+from rest_framework import filters
 
 
-class ReportFilter:
-    exception_param_handlers = {
-        'class_teacher_commented': 'class_teacher_commented_filter',
-        'head_teacher_commented': 'head_teacher_commented_filter',
-        'promotion_added': 'promotion_added_filter',
-    }
+class BaseFilter:
     def __init__(self, queryset, params) -> None:
         self.queryset = queryset
         self.params = params.dict()
@@ -34,6 +30,13 @@ class ReportFilter:
         return self.queryset
 
 
+class ReportFilter(BaseFilter):
+    exception_param_handlers = {
+        'class_teacher_commented': 'class_teacher_commented_filter',
+        'head_teacher_commented': 'head_teacher_commented_filter',
+        'promotion_added': 'promotion_added_filter',
+    }
+
     def class_teacher_commented_filter(self, queryset, name, value):
         if value == 'yes':
             return queryset.exclude(class_teacher_comment="")
@@ -56,6 +59,15 @@ class ReportFilter:
         return queryset
 
 
+class StudentFilter(BaseFilter):
+    exception_param_handlers = {
+        'search': 'search_string_handler',
+    }
+
+    def search_string_handler(self, queryset, name, value):
+        # if value:
+        #     queryset = queryset.filter(name)
+        return queryset
 
 class SubjectFilter(django_filters.FilterSet):
     level_group_name = django_filters.CharFilter(field_name='level_group', method='level_group_name_filter')

@@ -1,16 +1,20 @@
 from rest_framework import viewsets
 
 from permissions import HasGroup
+from results.filters import StudentFilter
 from ..models import Student, Subject
 from ..serializers import StudentSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from functools import partial
+from rest_framework import filters
 
 
 class StudentViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['first_name', 'last_name', 'middle_name']
     # permission_classes = [partial(HasGroup, 'admin')]
 
     def get_queryset(self):
@@ -19,8 +23,8 @@ class StudentViewSet(viewsets.ModelViewSet):
         if class_room_pk:
             queryset = queryset.filter(class_room=class_room_pk)
         params = self.request.query_params
-        if params:
-            queryset = queryset.filter(**params.dict())
+        f = StudentFilter(queryset, params)
+        queryset = f.filter()
         return queryset
 
     @action(detail=True, methods=['POST'], name='upload_picture', url_path='picture/upload')
@@ -34,10 +38,7 @@ class StudentViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['GET'], name='get_count', url_path='count')
     def get_count(self, request, *args, **kwargs):
-        params = self.request.query_params
-        queryset = super().get_queryset()
-        if params:
-            queryset = queryset.filter(**params.dict())
+        queryset = self.get_queryset()
         count = queryset.count()
         return Response({'count':count})
     

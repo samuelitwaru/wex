@@ -72,7 +72,10 @@ def compute_student_report(student, grading_system, period):
         papers = subject.papers.all()
         papers = student.class_room.level.papers.filter(subject=subject)
         allocation = models.PaperAllocation.objects.filter(paper=papers.first(), class_room=student.class_room).first()
+        
         if allocation: subject_report.teacher = allocation.teacher
+        else: subject_report.teacher = None
+
         for paper in papers:
             assessment_ids = [assessment.id for assessment in models.Assessment.objects.filter(paper=paper, period=period, class_room=student.class_room)]
             scores = [score.mark for score in models.Score.objects.filter(assessment__in=assessment_ids, student=student)]
@@ -181,7 +184,7 @@ class SubjectReport:
         self.points = mapper[self.letter_grade]
 
     def __set_subject_teacher_initals(self):
-        if self.teacher:
+        if isinstance(self.teacher, models.Teacher):
             self.subject_teacher_initials = self.teacher.initials
         else:
             self.subject_teacher_initials = ''

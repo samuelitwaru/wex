@@ -18,8 +18,6 @@ class LevelViewSet(viewsets.ModelViewSet):
         count = queryset.count()
         return Response({'count':count})
 
-    
-
     @action(detail=True, methods=['PUT'], name='add_papers', url_path='papers/add')
     def add_papers(self, request, *args, **kwargs):
         level = Level.objects.filter(id=kwargs.get('pk')).first()

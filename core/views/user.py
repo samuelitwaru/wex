@@ -26,6 +26,12 @@ class UserViewSet(viewsets.ModelViewSet):
         if params:
             queryset = queryset.filter(**params.dict())
         return queryset
+    
+    @action(detail=False, methods=['GET'], name='get_count', url_path='count')
+    def get_count(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        count = queryset.count()
+        return Response({'count':count})
 
     def create(self, request, *args, **kwargs):
         group_ids = request.data.pop('groups', [])
@@ -49,7 +55,6 @@ class UserViewSet(viewsets.ModelViewSet):
     
     def update(self, request, *args, **kwargs):
         user = get_object_or_404(self.queryset, pk=kwargs['pk'])
-        print(dir(user))
         group_ids = request.data.pop('groups', [])
         user.first_name = request.data.get('first_name')
         user.last_name = request.data.get('last_name')
@@ -66,17 +71,6 @@ class UserViewSet(viewsets.ModelViewSet):
             teacher.save()
         serializer = self.get_serializer(user)
         return Response(serializer.data)
-
-
-    @action(detail=False, methods=['GET'], name='get_count', url_path='count')
-    def get_count(self, request, *args, **kwargs):
-        params = self.request.query_params
-        queryset = super().get_queryset()
-        if params:
-            queryset = queryset.filter(**params.dict())
-        count = queryset.count()
-        return Response({'count':count})
-    
 
     @action(detail=False, methods=['GET'], name='get_user_by_token', url_path=r'token/(?P<token>[\w-]+)')
     def get_user_by_token(self, request, *args, **kwargs):
@@ -124,39 +118,22 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(user)
             return Response(serializer.data)
         return HttpResponseBadRequest()
-    
-    @action(detail=False, methods=['GET'], name='get_count', url_path='count')
-    def get_count(self, request, *args, **kwargs):
-        params = self.request.query_params
-        queryset = super().get_queryset()
-        if params:
-            queryset = queryset.filter(**params.dict())
-        count = queryset.count()
-        return Response({'count':count})
-    
-    @action(detail=True, methods=['PUT'], name='activate_or_deactivate', url_path='activate')
-    def activate_or_deactivate(self, request, *args, **kwargs):
-        queryset = User.objects.filter(id=kwargs.get('pk'))
-        queryset.update(**request.data)
-        user = queryset.first()
-        serializer = self.get_serializer(user)
-        return Response(serializer.data)
 
-    @action(detail=True, methods=['PUT'], name='add_groups', url_path='groups/add')
-    def add_groups(self, request, *args, **kwargs):
-        user = User.objects.filter(id=kwargs.get('pk')).first()
-        groups = Group.objects.filter(pk__in=request.data)
-        user.groups.add(*groups)
-        serializer = self.get_serializer(user)
-        return Response(serializer.data)
+    # @action(detail=True, methods=['PUT'], name='add_groups', url_path='groups/add')
+    # def add_groups(self, request, *args, **kwargs):
+    #     user = User.objects.filter(id=kwargs.get('pk')).first()
+    #     groups = Group.objects.filter(pk__in=request.data)
+    #     user.groups.add(*groups)
+    #     serializer = self.get_serializer(user)
+    #     return Response(serializer.data)
     
-    @action(detail=True, methods=['PUT'], name='remove_groups', url_path='groups/remove')
-    def remove_groups(self, request, *args, **kwargs):
-        user = User.objects.filter(id=kwargs.get('pk')).first()
-        groups = Group.objects.filter(pk__in=request.data)
-        user.groups.remove(*groups)
-        serializer = self.get_serializer(user)
-        return Response(serializer.data)
+    # @action(detail=True, methods=['PUT'], name='remove_groups', url_path='groups/remove')
+    # def remove_groups(self, request, *args, **kwargs):
+    #     user = User.objects.filter(id=kwargs.get('pk')).first()
+    #     groups = Group.objects.filter(pk__in=request.data)
+    #     user.groups.remove(*groups)
+    #     serializer = self.get_serializer(user)
+    #     return Response(serializer.data)
 
 
 

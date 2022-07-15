@@ -17,9 +17,6 @@ class GradingSystemViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'], name='get_count', url_path='count')
     def get_count(self, request, *args, **kwargs):
-        params = self.request.query_params
-        queryset = super().get_queryset()
-        if params:
-            queryset = queryset.filter(**params.dict())
+        queryset = self.get_queryset()
         count = queryset.count()
         return Response({'count':count})
