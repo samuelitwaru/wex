@@ -47,11 +47,11 @@ O_RESULT_VALIDATOR = [MinValueValidator(8), MaxValueValidator(72)]
 A_RESULT_VALIDATOR = [MinValueValidator(1), MaxValueValidator(20)]
 
 
-def student_picture_upload_loacation(instance, filename):
+def student_picture_upload_location(instance, filename):
     _, extension = filename.split('.')
     return f'students/pictures/{instance.id}.{extension}'
 
-def teacher_picture_upload_loacation(instance, filename):
+def teacher_picture_upload_location(instance, filename):
     _, extension = filename.split('.')
     return f'teachers/pictures/{instance.id}.{extension}'
 
@@ -142,7 +142,7 @@ class ClassRoom(TimeStampedModel):
 class Teacher(TimeStampedModel):
     name = models.CharField(max_length=256)
     initials = models.CharField(max_length=8)
-    picture = ResizedImageField(upload_to=teacher_picture_upload_loacation, storage=OverwiteStorageSystem, null=True, blank=True)
+    picture = ResizedImageField(upload_to=teacher_picture_upload_location, storage=OverwiteStorageSystem, null=True, blank=True)
     user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='teacher')
     
     def __str__(self):
@@ -165,7 +165,7 @@ class Student(TimeStampedModel):
     middle_name = models.CharField(max_length=64, null=True, blank=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     dob = models.DateField()
-    picture = ResizedImageField(upload_to=student_picture_upload_loacation, storage=OverwiteStorageSystem, null=True, blank=True)
+    picture = ResizedImageField(upload_to=student_picture_upload_location, storage=OverwiteStorageSystem, null=True, blank=True)
     class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
     subjects = models.ManyToManyField('Subject', related_name='students', blank=True)
 

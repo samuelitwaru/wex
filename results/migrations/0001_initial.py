@@ -88,7 +88,7 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True, null=True)),
                 ('name', models.CharField(max_length=256)),
                 ('initials', models.CharField(max_length=8)),
-                ('picture', django_resized.forms.ResizedImageField(blank=True, crop=None, force_format='JPEG', keep_meta=True, null=True, quality=-1, size=[200, 200], storage=utils.OverwiteStorageSystem, upload_to=results.models.teacher_picture_upload_loacation)),
+                ('picture', django_resized.forms.ResizedImageField(blank=True, crop=None, force_format='JPEG', keep_meta=True, null=True, quality=-1, size=[200, 200], storage=utils.OverwiteStorageSystem, upload_to=results.models.teacher_picture_upload_location)),
                 ('user', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='teacher', to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -126,7 +126,7 @@ class Migration(migrations.Migration):
                 ('middle_name', models.CharField(blank=True, max_length=64, null=True)),
                 ('gender', models.CharField(choices=[('M', 'Male'), ('F', 'Female')], max_length=1)),
                 ('dob', models.DateField()),
-                ('picture', django_resized.forms.ResizedImageField(blank=True, crop=None, force_format='JPEG', keep_meta=True, null=True, quality=-1, size=[200, 200], storage=utils.OverwiteStorageSystem, upload_to=results.models.student_picture_upload_loacation)),
+                ('picture', django_resized.forms.ResizedImageField(blank=True, crop=None, force_format='JPEG', keep_meta=True, null=True, quality=-1, size=[200, 200], storage=utils.OverwiteStorageSystem, upload_to=results.models.student_picture_upload_location)),
                 ('class_room', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='results.classroom')),
                 ('subjects', models.ManyToManyField(blank=True, related_name='students', to='results.subject')),
             ],

@@ -25,6 +25,7 @@ class PaperReportSerializer(serializers.Serializer):
     scores = serializers.ListField()
     total = serializers.IntegerField()
     average = serializers.IntegerField()
+    aggregate = serializers.IntegerField()
     score = serializers.DecimalField(max_digits=2, decimal_places=1)
     descriptor = serializers.CharField()
 

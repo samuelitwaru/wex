@@ -1,6 +1,17 @@
 from results import models
 
 
+def wrap_aggr(aggr):
+    if aggr <= 2:
+        return f'D{aggr}'
+    elif aggr <= 6:
+        return f'C{aggr}'
+    elif aggr <= 8:
+        return f'P{aggr}'
+    elif aggr == 9:
+        return f'F{aggr}'
+
+
 def compute_subject_grade(aggregates=[8,8,3]):
     '''computes the letter grade for a subject i.e A,B,C,D,E,O and F using the provided aggregates e.g [8,8,3]'''
     n = len(aggregates)
@@ -209,6 +220,7 @@ class PaperReport:
         self.average = self.__compute_average()
         self.score = self.__compute_score()
         self.descriptor = self.__compute_descriptor()
+        self.aggregate = self.grading_system.grade(self.average)
     
     @property
     def scores_string(self):
