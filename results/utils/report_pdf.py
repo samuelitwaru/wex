@@ -222,6 +222,7 @@ def create_activity_body_table(computed_report, columns):
         ('BACKGROUND', (0, 0), (-1, 0), colors.black),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
         ('FONTSIZE', (0, 0), (-1, 0), 8),
+        ('LEFTPADDING', (0, 0), (-1, 0), 1),
     ]
     header = [col for col, available in columns.items() if available]
     # rows.append(header)
@@ -242,6 +243,9 @@ def create_activity_body_table(computed_report, columns):
         cols2 = [{
             'col': 'competency',
             'name': 'name'
+        }, {
+            'col': 'mark',
+            'name': 'mark'
         }, {
             'col': 'score',
             'name': 'score'
