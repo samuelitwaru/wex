@@ -11,10 +11,10 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+from pathlib import Path
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
@@ -27,7 +27,6 @@ DEBUG = False
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-
 
 # Application definition
 
@@ -60,8 +59,6 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
-
-
 CORS_ALLOWED_ORIGINS = ['http://localhost:8080']
 CORS_ORIGIN_ALLOW_ALL = True
 
@@ -80,7 +77,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
             ],
             'libraries': {
-                "app_tags" : "templatetags.app_tags"
+                "app_tags": "templatetags.app_tags"
             }
         },
     },
@@ -88,36 +85,40 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'wex.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
 DATABASES = {
     # 'default': {'ENGINE': 'django.db.backends.mysql','NAME': os.environ["WEX_DB_NAME"],'USER': os.environ["WEX_DB_USER"],'PASSWORD': os.environ["WEX_DB_PASSWORD"]},
-    'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),}
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': Path(os.path.dirname(BASE_DIR)) / 'db.sqlite3',
+    }
 }
 
-
-
+print(DATABASES['default']['NAME'])
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME':
+        'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME':
+        'django.contrib.auth.password_validation.MinimumLengthValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        'NAME':
+        'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'NAME':
+        'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -129,7 +130,6 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     )
 }
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
@@ -150,21 +150,19 @@ DATE_FORMAT = "%d/%m/%Y"
 
 DATE_INPUT_FORMATS = ['%d/%m/%Y']
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
 
-DEFAULT_AUTO_FIELD='django.db.models.AutoField'
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static/')]
 STATIC_URL = '/static/'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT =  os.path.join(BASE_DIR, 'media/')
-
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
 # Email settings
 if DEBUG:
@@ -172,11 +170,10 @@ if DEBUG:
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = os.environ["EMAIL_HOST_USER"] # 'amobitinfo@gmail.com'
-EMAIL_HOST_PASSWORD = os.environ["EMAIL_HOST_PASSWORD"] # 'wnocbulgkiatkucc'
+EMAIL_HOST_USER = os.environ["EMAIL_HOST_USER"]  # 'amobitinfo@gmail.com'
+EMAIL_HOST_PASSWORD = os.environ["EMAIL_HOST_PASSWORD"]  # 'wnocbulgkiatkucc'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-
 
 # celery
 CELERY_BROKER_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
