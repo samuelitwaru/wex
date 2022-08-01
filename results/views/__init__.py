@@ -1,5 +1,6 @@
 from .user_pref import *
 from .assessment import *
+from .assessment_category import *
 from .student import *
 from .period import *
 from .teacher import *

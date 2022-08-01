@@ -35,11 +35,15 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         group_ids = request.data.pop('groups', [])
+        telephone = request.data.pop('telephone', None)
         user = User.objects.create(**request.data)
         groups = Group.objects.filter(id__in=group_ids)
         user.groups.set(groups)
         user.set_password(request.data.get('username'))
         user.save()
+        profile = user.profile
+        profile.telephone = telephone
+        profile.save()
         if groups.filter(name='teacher').first():
             # create teacher profile
             Teacher.objects.create(
@@ -56,12 +60,16 @@ class UserViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         user = get_object_or_404(self.queryset, pk=kwargs['pk'])
         group_ids = request.data.pop('groups', [])
+        telephone = request.data.pop('telephone', None)
         user.first_name = request.data.get('first_name')
         user.last_name = request.data.get('last_name')
         user.username = request.data.get('username')
         user.email = request.data.get('email')
         user.is_active = request.data.get('is_active')
         user.save()
+        profile = user.profile
+        profile.telephone = telephone
+        profile.save()
         groups = Group.objects.filter(id__in=group_ids)
         user.groups.set(groups)
         if groups.filter(name='teacher').first():

@@ -86,7 +86,8 @@ def compute_student_report(student, grading_system, period):
         
         if allocation: subject_report.teacher = allocation.teacher
         else: subject_report.teacher = None
-
+        if len(papers) == 0:
+            continue
         for paper in papers:
             assessment_ids = [assessment.id for assessment in models.Assessment.objects.filter(paper=paper, period=period, class_room=student.class_room)]
             scores = [score.mark for score in models.Score.objects.filter(assessment__in=assessment_ids, student=student)]

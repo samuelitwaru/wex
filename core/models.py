@@ -4,7 +4,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from utils import OverwiteStorageSystem
 from django_resized import ResizedImageField
-
+from django.contrib.auth.models import User
 
 SINGLE_ENTRY_VALIDATOR = [MinValueValidator(1), MaxValueValidator(1)]
 
@@ -77,4 +77,18 @@ class Department(TimeStampedModel):
 
 
 
+class Profile(TimeStampedModel):
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='profile')
+    telephone = models.CharField(max_length=16, null=True)
+
+    def __str__(self):
+        return self.user
+
+
 from django.db.models.signals import post_save
+
+
+def create_user_profile(sender, instance, created, **kwargs):
+	profile, created = Profile.objects.get_or_create(user=instance)  
+
+post_save.connect(create_user_profile, sender=User) 

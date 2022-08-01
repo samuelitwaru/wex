@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
 
 from results.models import Teacher
 from ..forms import SetUserForm
@@ -23,19 +23,21 @@ class AuthLoginView(ObtainAuthToken):
         user = serializer.validated_data['user']
         groups = [group.name for group in user.groups.all()]
         token, created = Token.objects.get_or_create(user=user)
-        res = {
-            'token': token.key,
-            'user': {
-                'user_id': user.pk,
-                'name': f'{user.first_name} {user.last_name}',
-                'email': user.email,
-                'groups': groups
+        if not user.is_superuser:
+            res = {
+                'token': token.key,
+                'user': {
+                    'user_id': user.pk,
+                    'name': f'{user.first_name} {user.last_name}',
+                    'email': user.email,
+                    'groups': groups
+                }
             }
-        }
-        if 'teacher' in groups:
-            teacher = Teacher.objects.filter(user=user).first()
-            res['user']['teacher_id'] = teacher.id
-        return Response(res)
+            if 'teacher' in groups:
+                teacher = Teacher.objects.filter(user=user).first()
+                res['user']['teacher_id'] = teacher.id
+            return Response(res)
+        return HttpResponseBadRequest('Unable to login with provided credentails.')
 
 
 class AuthLogoutView(APIView):

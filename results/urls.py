@@ -10,6 +10,7 @@ from django.urls import path, include
 router.register(r'user-prefs', UserPrefViewSet)
 router.register(r'periods', PeriodViewSet)
 router.register(r'assessments', AssessmentViewSet)
+router.register(r'assessment-categories', AssessmentCategoryViewSet)
 router.register(r'activities', ActivityViewSet)
 router.register(r'teachers', TeacherViewSet)
 router.register(r'students', StudentViewSet)

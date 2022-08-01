@@ -1,4 +1,5 @@
 from django.urls import path
+from core.views.other import read_nationalities
 from wex import router
 from .views import *
 
@@ -17,4 +18,7 @@ urlpatterns = [
     path('functionalities/<str:group>', functionalities, name='functionalities'),
     path('functionalities/<str:group>/<str:model>', model_functionalities, name='model_functionalities'),
     path('user/set/<str:token_key>', set_user, name='set_user'),
+
+    path('api/core/nationalities/', read_nationalities, name='read_nationalities'),
+
 ]

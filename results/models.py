@@ -5,7 +5,8 @@ from django.contrib.auth.models import User, Group
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.forms import JSONField
-from core.models import TimeStampedModel
+from core.models import Entity, TimeStampedModel
+from core.utils import NATIONALITIES
 from results.utils import DEFAULT_USER_PREFS, LEVELS, LEVEL_GROUPS
 from django_resized import ResizedImageField
 from django.db import transaction
@@ -143,7 +144,7 @@ class Teacher(TimeStampedModel):
     name = models.CharField(max_length=256)
     initials = models.CharField(max_length=8)
     picture = ResizedImageField(upload_to=teacher_picture_upload_location, storage=OverwiteStorageSystem, null=True, blank=True)
-    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='teacher')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='teacher')
     
     def __str__(self):
         return self.name
@@ -160,11 +161,13 @@ class PaperAllocation(TimeStampedModel):
 
 
 class Student(TimeStampedModel):
+    index_no = models.CharField(max_length=64, null=True)
     first_name = models.CharField(max_length=64)
     last_name = models.CharField(max_length=64)
     middle_name = models.CharField(max_length=64, null=True, blank=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
-    dob = models.DateField()
+    dob = models.DateField(null=True)
+    nationality = models.CharField(max_length=128, choices=NATIONALITIES)
     picture = ResizedImageField(upload_to=student_picture_upload_location, storage=OverwiteStorageSystem, null=True, blank=True)
     class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
     subjects = models.ManyToManyField('Subject', related_name='students', blank=True)
@@ -175,6 +178,12 @@ class Student(TimeStampedModel):
         ordering=['class_room__level']
 
 
+class AssessmentCategory(TimeStampedModel):
+    name = models.CharField(max_length=16)
+
+    def __str__(self):
+        return self.name
+
 class Assessment(TimeStampedModel):
     date = models.DateField()
     paper = models.ForeignKey(Paper, on_delete=models.CASCADE)
@@ -182,9 +191,11 @@ class Assessment(TimeStampedModel):
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     period = models.ForeignKey(Period, on_delete=models.CASCADE, default=period_default)
     is_open = models.BooleanField(default=True)
+    assessment_category = models.ForeignKey(AssessmentCategory, on_delete=models.CASCADE)
 
     class Meta:
         ordering = ['-id']
+        unique_together = ('paper', 'class_room', 'assessment_category')
 
     def __str__(self):
         return f'{self.class_room} {self.paper}'
@@ -282,20 +293,6 @@ class Report(TimeStampedModel):
         return f'{self.student} - {self.period}'
 
 
-# class Promotion(TimeStampedModel):
-#     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-#     current_class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE, related_name='promotions_from')
-#     next_class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE, related_name='promotions_to')
-#     period = models.ForeignKey(Period, on_delete=models.CASCADE, default=period_default)
-#     status = models.CharField(max_length=16, choices=PROMOTION_STATUS_CHOICES, default=PROMOTION_STATUS_CHOICES[0][0])
-#     rejection_comment = models.CharField(max_length=512, null=True, blank=True)
-
-#     class Meta:
-#         unique_together = ('student', 'current_class_room', 'next_class_room', 'period')
-    
-#     def __str__(self):
-#         return f'{self.student} - {self.next_class_room} {self.status}'
-
 class CustomGradingSystem(TimeStampedModel):
     class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
@@ -305,13 +302,6 @@ class CustomGradingSystem(TimeStampedModel):
         unique_together = ('class_room', 'subject', 'grading_system')
 
 
-# class Functionality(models.Model):
-#     model = models.CharField(max_length=64, choices=[])
-#     category = models.CharField(max_length=1, choices=[(cat,cat) for cat in 'CRUD'])
-#     function = models.CharField(max_length=512)
-#     group = models.CharField(max_length=32)
-#     limitation = models.CharField(max_length=512)
-
 
 # signals
 from django.db.models.signals import post_save, post_delete
@@ -320,6 +310,12 @@ from django.db.models.signals import post_save, post_delete
 def create_student_report(sender, instance, **kwargs):
     if kwargs.get('created'):
         Report.objects.create(**{'student':instance, 'level':instance.class_room.level})
+
+def create_student_index_no(sender, instance, **kwargs):
+    if not instance.index_no:
+        instance.index_no = f'RES/{instance.created_at.year}/{str(instance.id).zfill(4)}'
+        instance.save()
+
 
 def create_subject_papers(sender, instance, **kwargs):
     if kwargs.get('created'):
@@ -357,11 +353,19 @@ def create_paper_allocations(sender, instance, **kwargs):
             PaperAllocation.objects.get_or_create(paper=instance, class_room=class_room)
 
 
+def update_subject_no_papers(sender, instance, **kwargs):
+    subject = instance.subject
+    subject.no_papers = subject.papers.count()
+    subject.save()
+
 post_save.connect(create_paper_allocations, sender=Paper)
 post_save.connect(create_student_report, sender=Student)
+post_save.connect(create_student_index_no, sender=Student)
 post_save.connect(create_subject_papers, sender=Subject)
 post_save.connect(enforce_grading_system_one_default, sender=GradingSystem)
 post_delete.connect(enforce_grading_system_one_default, sender=GradingSystem)
+post_delete.connect(update_subject_no_papers, sender=Paper)
+post_save.connect(update_subject_no_papers, sender=Paper)
 
 
 # initializations

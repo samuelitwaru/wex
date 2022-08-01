@@ -436,7 +436,7 @@ def create_result_table(computed_report, student):
 
 
 def insert_water_mark(canvas, doc):
-    path = f'{settings.MEDIA_ROOT}mvara.png'
+    path = f'{settings.MEDIA_ROOT}/mvara.png'
     canvas.saveState()
     canvas.drawImage(path, 120, 250, width=400, height=400, mask='auto')
 

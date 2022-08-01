@@ -6,6 +6,7 @@ from .teacher import *
 from .class_room import *
 from .student import *
 from .assessment import *
+from .assessment_category import *
 from .level import *
 from .grading_system import *
 from .score import *
