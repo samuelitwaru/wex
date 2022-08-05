@@ -74,7 +74,7 @@ title_style = ParagraphStyle(name='title',
                              wordWrap=True,
                              alignment=1)
 
-space = Spacer(0, 0.2 * inch)
+space = Spacer(0, 0.02 * inch)
 hr = HRFlowable(width=560,
                 thickness=2,
                 color=colors.black,
