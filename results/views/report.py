@@ -62,7 +62,7 @@ class ReportViewSet(viewsets.ModelViewSet):
         serializer = ComputedReportSerializer(computed_report)
         columns = request.data.get('columns')
         report_type = request.data.get('report_type')
-        pdf_report = PDFReport(computed_report, report_type=report_type, columns=columns)
+        pdf_report = PDFReport(computed_report, report_type=report_type, columns=columns, grading_system=grading_system, period=period)
         doc = pdf_report.run()
         filename = os.path.basename(doc.filename)
         host = get_host_name(request)

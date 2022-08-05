@@ -8,7 +8,7 @@ from reportlab.lib import colors
 from os.path import exists
 from core.models import Entity
 from results.models import Period
-from results.serializers import assessment
+from results.serializers import assessment, grading_system
 from results.utils.reports import wrap_aggr
 
 BLACK_GRID = ('GRID', (0, 0), (-1, -1), 0.5, colors.black)
@@ -98,6 +98,7 @@ def create_header(title=None):
         rows.append(['', style_paragraph(title.upper(), heading_style2)])
     len_rows = len(rows)
     style = [('SPAN', (0, 0), (0, len_rows - 1)),
+                ('BOTTOMPADDING', (1,0), (1,0), 10),
              ('LEFTPADDING', (0, 0), (0, len_rows - 1), 0)]
     table = Table(data=stretch_data(rows),
                   style=style,
@@ -105,16 +106,20 @@ def create_header(title=None):
     return table
 
 
-def create_student_table(student):
+def create_student_table(computed_report):
+    student = computed_report.student
+    if student.class_room.level.level_group.name == 'A':
+        result = f'{computed_report.points} POINTS'
+    else:
+        result = f'{computed_report.aggregates} AGGREAGATES'
     class_room = student.class_room
-    period = Period.objects.latest()
     if not student.picture:
         student.picture = 'profile-placeholder.png'
     image = get_image(f'{settings.MEDIA_ROOT}/{student.picture}')
     rows = [
-        [image, 'Name', f'{student}', 'Period'],
+        [image, 'Name', f'{student}', 'Result'],
         ['', 'Class', f'{class_room.name} {class_room.stream or ""}', ''],
-        ['', 'DOB', f'{student.dob}', f'{period}'],
+        ['', 'REG/NO', f'{student.index_no}', result],
         ['', 'Sex', f'{student.gender}', ''],
     ]
     style = [('SPAN', (0, 0), (0, 3)), ('LEFTPADDING', (0, 0), (0, 3), 0),
@@ -122,36 +127,88 @@ def create_student_table(student):
              ('GRID', (1, 0), (-1, -1), 0.5, colors.black), VALIGN_MIDDLE]
     table = Table(data=stretch_data(rows),
                   style=style,
-                  colWidths=col_widths_by_ratio([1.5, 1, 5, 1]))
+                  colWidths=col_widths_by_ratio([1.5, 1, 5, 2]))
     return table
 
+
+def create_grading_system_table(grading_system):
+    gs = grading_system
+    rows = [
+        ['D1', 'D2', 'C3', 'C4', 'C5', 'C6', 'P7', 'P8', 'F9'],
+        list(
+            map(
+                lambda i: str(i+1),
+                [gs.D2, gs.C3, gs.C4, gs.C5, gs.C6, gs.P7, gs.P8, gs.F9, -1]
+            )
+        )
+    ]
+    style = [BLACK_GRID]
+    table = Table(data=stretch_data(rows), style=style, colWidths=col_widths_by_ratio([1]*9))
+    return table
 
 def create_comment_table(computed_report):
     rows = [
         [
             'Class Teacher Comment',
-            computed_report.report.class_teacher_comment
+            'Signature'
         ],
-        ['Head Teacher Comment', computed_report.report.head_teacher_comment],
+        [computed_report.report.class_teacher_comment,''],
+        ['',''],
+        ['Head Teacher Comment', 'Signature'],
+        [computed_report.report.head_teacher_comment,''],
     ]
     style = [
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('GRID', (0, 0), (-1, 1), 0.5, colors.grey),
+        ('GRID', (0, 3), (-1, -1), 0.5, colors.grey),
     ]
     table = Table(data=stretch_data(rows),
-                  colWidths=col_widths_by_ratio([1, 3]),
+                  colWidths=col_widths_by_ratio([3, 1]),
                   style=style,
-                  rowHeights=[40, 40])
+                  rowHeights=[20, 40, 5, 20, 40])
     return table
 
 
+def create_next_term_table():
+    rows = [
+        ['Next term starts: ', 'Next term ends: '],
+    ]
+    style = [
+        BLACK_GRID
+    ]
+    table = Table(data=stretch_data(rows),
+                  colWidths=col_widths_by_ratio([1, 1]),
+                  style=style
+                  )
+    return table
+
+def create_score_key_table():
+    rows = [
+        ['Identifier: ', 'Achievement', 'Descriptor'],
+        ['1', 'Basic', ''],
+        ['2', 'Moderate', ''],
+        ['3', 'Outstading', ''],
+    ]
+    style = [
+        BLACK_GRID
+    ]
+    ratios = calc_col_ratios(rows)
+    table = Table(data=stretch_data(rows),
+                  colWidths=col_widths_by_ratio(ratios),
+                  style=style
+                  )
+    return table
+
 class PDFReport:
 
-    def __init__(self, computed_report, report_type, columns):
+    def __init__(self, computed_report, report_type, columns, grading_system, period):
         self.computed_report = computed_report
         self.report_type = report_type
         self.columns = columns
+        self.grading_system = grading_system
+        self.period = period
         self.elements = []
         self.student = self.computed_report.student
+        self.level_group = self.student.class_room.level.level_group
 
     @property
     def title(self):
@@ -160,7 +217,7 @@ class PDFReport:
             report_type = 'TERMLY'
         else:
             report_type = 'COMPETENCY'
-        return f'{level_group_name} - LEVEL, {report_type} REPORT'
+        return f'{level_group_name} - LEVEL, {report_type} REPORT, {self.period}'
 
     def create_elements(self):
         self.elements = []
@@ -171,6 +228,7 @@ class PDFReport:
         else:
             body_table = self.create_activity_body_table()
         comment_table = self.create_comment_table()
+        next_term_table = create_next_term_table()
         for element in [
                 entity_table, hr, student_table, space, body_table, space
         ]:
@@ -178,8 +236,17 @@ class PDFReport:
         if self.report_type == 'assessment':
             result_table = self.create_result_table()
             self.elements.append(result_table)
+            gs_table = create_grading_system_table(self.grading_system)
+            self.elements.insert(5, gs_table)
+            self.elements.insert(5, space)
         self.elements.append(space)
         self.elements.append(comment_table)
+        self.elements.append(space)
+        self.elements.append(next_term_table)
+        if self.report_type == 'activity':
+            score_key_table = create_score_key_table()
+            self.elements.append(space)
+            self.elements.append(score_key_table)
 
     def run(self):
         self.create_elements()
@@ -200,7 +267,7 @@ class PDFReport:
         return create_header(title=self.title)
 
     def create_student_table(self):
-        return create_student_table(self.computed_report.student)
+        return create_student_table(self.computed_report)
 
     def create_body_table(self):
         return create_assessment_body_table(self.computed_report, self.columns)
