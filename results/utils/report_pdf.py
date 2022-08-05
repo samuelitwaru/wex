@@ -184,9 +184,9 @@ def create_next_term_table():
 def create_score_key_table():
     rows = [
         ['Identifier: ', 'Achievement', 'Descriptor'],
-        ['1', 'Basic', ''],
-        ['2', 'Moderate', ''],
-        ['3', 'Outstading', ''],
+        ['1', 'Basic', 'Some learning outcomes achieved but not sufficient for overall achievement'],
+        ['2', 'Moderate', 'Most learning outcomes achieved enough for overall achiement'],
+        ['3', 'Outstading', 'All learning outcomes achieved with care'],
     ]
     style = [
         BLACK_GRID
