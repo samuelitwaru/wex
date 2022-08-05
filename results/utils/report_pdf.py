@@ -549,16 +549,18 @@ class ScoresPDF:
 
 class BulkPDFReport:
 
-    def __init__(self, computed_reports, report_type, columns):
+    def __init__(self, computed_reports, report_type, columns, grading_system, period):
         self.computed_reports = computed_reports
         self.report_type = report_type
         self.columns = columns
+        self.grading_system = grading_system
+        self.period = period
         self.elements = []
 
     def create_elements(self):
         self.elements = []
         for computed_report in self.computed_reports:
-            report = PDFReport(computed_report, self.report_type, self.columns)
+            report = PDFReport(computed_report, self.report_type, self.columns, self.grading_system, self.period)
             report.create_elements()
             self.elements += report.elements
             self.elements.append(PageBreak())

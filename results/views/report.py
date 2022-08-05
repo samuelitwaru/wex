@@ -120,7 +120,7 @@ class ReportViewSet(viewsets.ModelViewSet):
         computed_reports = [compute_student_report(stud, grading_system, period)[1] for stud in students]
         report_type = data.get('report_type', 'assessment')
         columns = data.get('columns', {'code':True})
-        bulk_report = BulkPDFReport(computed_reports, report_type, columns)
+        bulk_report = BulkPDFReport(computed_reports, report_type, columns, grading_system, period)
         doc = bulk_report.run()
         filename = os.path.basename(doc.filename)
         host = get_host_name(request)
