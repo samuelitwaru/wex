@@ -152,9 +152,10 @@ def create_comment_table(computed_report):
     ct_signature = ''
     head_teacher = User.objects.filter(groups__name__in=['head_teacher']).first()
     class_teacher = computed_report.student.class_room.teacher.user
-    if head_teacher and head_teacher.profile.signature:
-        ht_signature = get_image(f'{settings.MEDIA_ROOT}/{head_teacher.profile.signature}', height=35)
-    if class_teacher and class_teacher.profile.signature:
+    if head_teacher:
+        ht_profile, created = Profile.objects.get_or_create(user=head_teacher)
+        ht_signature = get_image(f'{settings.MEDIA_ROOT}/{ht_profile.signature}', height=35)
+    if class_teacher:
         ct_profile, created = Profile.objects.get_or_create(user=class_teacher)
         ct_signature = get_image(f'{settings.MEDIA_ROOT}/{ct_profile.signature}', height=35)
     rows = [
