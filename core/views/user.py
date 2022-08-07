@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
 from django.contrib.auth.models import User, Group
 from rest_framework.authtoken.models import Token
+from core.models import Profile
 from core.tasks import send_welcome_mail
 
 from results.models import Teacher
@@ -131,28 +132,11 @@ class UserViewSet(viewsets.ModelViewSet):
     def upload_signature(self, request, *args, **kwargs):
         picture = request.FILES['picture']
         user = super().get_queryset().filter(id=kwargs.get('pk')).first()
-        profile = user.profile
+        profile, created = Profile.objects.get_or_create(user=user)
         profile.signature = picture
         profile.save()
         serializer = self.get_serializer(user)
         return Response(serializer.data)
-
-    # @action(detail=True, methods=['PUT'], name='add_groups', url_path='groups/add')
-    # def add_groups(self, request, *args, **kwargs):
-    #     user = User.objects.filter(id=kwargs.get('pk')).first()
-    #     groups = Group.objects.filter(pk__in=request.data)
-    #     user.groups.add(*groups)
-    #     serializer = self.get_serializer(user)
-    #     return Response(serializer.data)
-    
-    # @action(detail=True, methods=['PUT'], name='remove_groups', url_path='groups/remove')
-    # def remove_groups(self, request, *args, **kwargs):
-    #     user = User.objects.filter(id=kwargs.get('pk')).first()
-    #     groups = Group.objects.filter(pk__in=request.data)
-    #     user.groups.remove(*groups)
-    #     serializer = self.get_serializer(user)
-    #     return Response(serializer.data)
-
 
 
 class GroupViewSet(viewsets.ModelViewSet):
