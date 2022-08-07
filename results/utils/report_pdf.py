@@ -5,7 +5,7 @@ from reportlab.platypus import HRFlowable, PageBreak, SimpleDocTemplate, Paragra
 from reportlab import platypus
 from reportlab.lib.enums import TA_LEFT, TA_CENTER
 from reportlab.lib import colors
-from os.path import exists
+import os.path
 from core.models import Entity, Profile
 from results.models import Period
 from results.serializers import assessment, grading_system
@@ -40,8 +40,8 @@ def make_paragraph(cell, style):
 
 
 def get_image(image_path, height=80):
-    file_exists = exists(image_path)
-    if file_exists:
+    is_file = os.path.isfile(image_path)
+    if is_file:
         image = Image(image_path)
         image.vAlign = 'CENTER'
         image.hAlign = 'CENTER'
