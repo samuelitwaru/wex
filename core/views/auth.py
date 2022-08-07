@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
+from core.serializers.auth import CustomAuthTokenSerializer
 
 from results.models import Teacher
 from ..forms import SetUserForm
@@ -15,6 +16,7 @@ from django.contrib import messages
 class AuthLoginView(ObtainAuthToken):
 
     # permission_classes = [AllowAny]
+    serializer_class = CustomAuthTokenSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,

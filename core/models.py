@@ -9,9 +9,12 @@ from django.contrib.auth.models import User
 SINGLE_ENTRY_VALIDATOR = [MinValueValidator(1), MaxValueValidator(1)]
 
 def entity_logo_upload_loacation(instance, filename):
-	print(filename)
 	_, extension = filename.split('.')
 	return f'entities/pictures/{instance.id}.{extension}'
+
+def user_signature_upload_location(instance, filename):
+    _, extension = filename.split('.')
+    return f'users/signatures/{instance.id}.{extension}'
 
 
 # Create your models here.
@@ -79,7 +82,10 @@ class Department(TimeStampedModel):
 
 class Profile(TimeStampedModel):
     user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='profile')
-    telephone = models.CharField(max_length=16, null=True)
+    telephone = models.CharField(max_length=16, null=True, unique=True)
+    signature = ResizedImageField(upload_to=user_signature_upload_location, storage=OverwiteStorageSystem, null=True, blank=True)
+
+
 
     def __str__(self):
         return self.user

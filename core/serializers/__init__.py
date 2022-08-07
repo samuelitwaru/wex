@@ -1,4 +1,5 @@
 from .entity import *
+from .auth import *
 from .user import *
 from .department import *
 from .metric import *

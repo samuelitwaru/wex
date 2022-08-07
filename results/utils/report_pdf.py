@@ -10,6 +10,7 @@ from core.models import Entity
 from results.models import Period
 from results.serializers import assessment, grading_system
 from results.utils.reports import wrap_aggr
+from django.contrib.auth.models import User
 
 BLACK_GRID = ('GRID', (0, 0), (-1, -1), 0.5, colors.black)
 VALIGN_MIDDLE = ('VALIGN', (0, 0), (-1, -1), 0.5, 'MIDDLE')
@@ -147,15 +148,20 @@ def create_grading_system_table(grading_system):
     return table
 
 def create_comment_table(computed_report):
+    ht_signature = ''
+    ct_signature = ''
+    head_teacher = User.objects.filter(groups__name__in=['head_teacher']).first()
+    class_teacher = computed_report.student.class_room.teacher.user
+    if head_teacher and head_teacher.profile.signature:
+        ht_signature = get_image(f'{settings.MEDIA_ROOT}/{head_teacher.profile.signature}', height=35)
+    if class_teacher and class_teacher.profile.signature:
+        ct_signature = get_image(f'{settings.MEDIA_ROOT}/{class_teacher.profile.signature}', height=35)
     rows = [
-        [
-            'Class Teacher Comment',
-            'Signature'
-        ],
-        [computed_report.report.class_teacher_comment,''],
+        ['Class Teacher Comment', 'Signature'],
+        [computed_report.report.class_teacher_comment,ct_signature],
         ['',''],
         ['Head Teacher Comment', 'Signature'],
-        [computed_report.report.head_teacher_comment,''],
+        [computed_report.report.head_teacher_comment,ht_signature],
     ]
     style = [
         ('GRID', (0, 0), (-1, 1), 0.5, colors.grey),
@@ -579,21 +585,3 @@ class BulkPDFReport:
                   onLaterPages=insert_water_mark)
         doc.build(self.elements)
         return doc
-
-
-# class HorizontalRule(Flowable):
-#     def __init__(self, width=3, strokecolor=colors.black):
-#         self.width = width
-#         self.strokecolor = strokecolor
-#     def wrap(self, availWidth, availHeight):
-#         self.availWidth = availWidth
-#         return (availWidth, self.width + 2)
-#     def draw(self):
-#         canvas = self.canv
-#         canvas.setLineWidth(self.width)
-#         canvas.setStrokeColor(self.strokecolor)
-#         p = canvas.beginPath()
-#         p.moveTo(0, 1)
-#         p.lineTo(self.availWidth, 1)
-#         p.close()
-#         canvas.drawPath( p )

@@ -126,6 +126,16 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(user)
             return Response(serializer.data)
         return HttpResponseBadRequest()
+    
+    @action(detail=True, methods=['POST'], name='upload_signature', url_path='signature/upload')
+    def upload_signature(self, request, *args, **kwargs):
+        picture = request.FILES['picture']
+        user = super().get_queryset().filter(id=kwargs.get('pk')).first()
+        profile = user.profile
+        profile.signature = picture
+        profile.save()
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
 
     # @action(detail=True, methods=['PUT'], name='add_groups', url_path='groups/add')
     # def add_groups(self, request, *args, **kwargs):

@@ -44,6 +44,7 @@ class GroupSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     groups = GroupSerializer(many=True, read_only=True)
     telephone = serializers.CharField(source='profile.telephone', read_only=True)
+    signature = serializers.CharField(source='profile.signature', read_only=True)
     class Meta:
         model = User
         exclude = ('password',)
