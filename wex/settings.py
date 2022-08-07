@@ -181,4 +181,9 @@ DJANGORESIZED_DEFAULT_SIZE = [200, 200]
 DJANGORESIZED_DEFAULT_FORCE_FORMAT = 'JPEG'
 DJANGORESIZED_DEFAULT_FORMAT_EXTENSIONS = {'JPEG': ".jpg"}
 
-# AUTHENTICATION_BACKENDS = ( 'core.utils.AuthBackend',)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': Path(os.path.dirname(BASE_DIR)) / 'cache/',
+    }
+}
