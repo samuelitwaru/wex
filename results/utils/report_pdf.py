@@ -6,7 +6,7 @@ from reportlab import platypus
 from reportlab.lib.enums import TA_LEFT, TA_CENTER
 from reportlab.lib import colors
 from os.path import exists
-from core.models import Entity
+from core.models import Entity, Profile
 from results.models import Period
 from results.serializers import assessment, grading_system
 from results.utils.reports import wrap_aggr
@@ -155,7 +155,8 @@ def create_comment_table(computed_report):
     if head_teacher and head_teacher.profile.signature:
         ht_signature = get_image(f'{settings.MEDIA_ROOT}/{head_teacher.profile.signature}', height=35)
     if class_teacher and class_teacher.profile.signature:
-        ct_signature = get_image(f'{settings.MEDIA_ROOT}/{class_teacher.profile.signature}', height=35)
+        ct_profile, created = Profile.objects.get_or_create(user=class_teacher)
+        ct_signature = get_image(f'{settings.MEDIA_ROOT}/{ct_profile.signature}', height=35)
     rows = [
         ['Class Teacher Comment', 'Signature'],
         [computed_report.report.class_teacher_comment,ct_signature],
