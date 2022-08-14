@@ -46,6 +46,10 @@ class SubjectReportSerializer(serializers.Serializer):
     letter_grade = serializers.CharField()
     subject_teacher_initials = serializers.CharField()
     points = serializers.IntegerField()
+    activity_total_scores = serializers.IntegerField()
+    activity_average_score = serializers.IntegerField()
+    activity_score = serializers.IntegerField()
+    activity_score_identifier = serializers.CharField()
 
 
 class ComputedReportSerializer(serializers.Serializer):

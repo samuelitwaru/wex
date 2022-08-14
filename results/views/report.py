@@ -37,7 +37,7 @@ class ReportViewSet(viewsets.ModelViewSet):
         count = queryset.count()
         return Response({'count': count})
 
-    @method_decorator(cache_page(60 * 15))
+    # @method_decorator(cache_page(60 * 15))
     @action(detail=False,
             methods=['GET'],
             name='get_computed_student_report',

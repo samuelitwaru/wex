@@ -1,3 +1,4 @@
+from datetime import datetime
 from email.policy import default
 from unicodedata import category
 from django.db import models
@@ -176,6 +177,12 @@ class Student(TimeStampedModel):
         return f'{self.first_name} {self.last_name}'
     class Meta:
         ordering=['class_room__level']
+    
+    @property
+    def age(self):
+        if self.dob:
+            delta = datetime.now().year - self.dob.year
+            return delta
 
 
 class AssessmentCategory(TimeStampedModel):

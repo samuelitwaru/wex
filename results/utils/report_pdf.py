@@ -122,6 +122,7 @@ def create_student_table(computed_report):
         ['', 'Class', f'{class_room.name} {class_room.stream or ""}', ''],
         ['', 'REG/NO', f'{student.index_no}', result],
         ['', 'Sex', f'{student.gender}', ''],
+        ['', 'Age', f'{student.age}', ''],
     ]
     style = [('SPAN', (0, 0), (0, 3)), ('LEFTPADDING', (0, 0), (0, 3), 0),
              ('SPAN', (3, 0), (3, 1)), ('SPAN', (3, 2), (3, 3)),
@@ -129,6 +130,26 @@ def create_student_table(computed_report):
     table = Table(data=stretch_data(rows),
                   style=style,
                   colWidths=col_widths_by_ratio([1.5, 1, 5, 2]))
+    return table
+
+def create_student_table2(computed_report):
+    student = computed_report.student
+    class_room = student.class_room
+    if not student.picture:
+        student.picture = 'profile-placeholder.png'
+    image = get_image(f'{settings.MEDIA_ROOT}/{student.picture}')
+    rows = [
+        [image, 'Name', f'{student}'],
+        ['', 'Class', f'{class_room.name} {class_room.stream or ""}'],
+        ['', 'REG/NO', f'{student.index_no}'],
+        ['', 'Sex', f'{student.gender}'],
+    ]
+    style = [('SPAN', (0, 0), (0, 3)), ('LEFTPADDING', (0, 0), (0, 3), 0),
+            #  ('SPAN', (3, 0), (3, 1)), ('SPAN', (3, 2), (3, 3)),
+             ('GRID', (1, 0), (-1, -1), 0.5, colors.black), VALIGN_MIDDLE]
+    table = Table(data=stretch_data(rows),
+                  style=style,
+                  colWidths=col_widths_by_ratio([1.5, 1, 5]))
     return table
 
 
@@ -206,6 +227,7 @@ def create_score_key_table():
                   )
     return table
 
+
 class PDFReport:
 
     def __init__(self, computed_report, report_type, columns, grading_system, period):
@@ -275,7 +297,10 @@ class PDFReport:
         return create_header(title=self.title)
 
     def create_student_table(self):
-        return create_student_table(self.computed_report)
+        if self.report_type == 'assessment':
+            return create_student_table(self.computed_report)
+        return create_student_table2(self.computed_report)
+        
 
     def create_body_table(self):
         return create_assessment_body_table(self.computed_report, self.columns)
@@ -374,6 +399,60 @@ def create_activity_body_table(computed_report, columns):
                     span_row.append(getattr(activity, col['name']))
             [span_row.append('') for col in cols3 if columns.get(col['col'])]
             rows.append(span_row)
+    rows = [[col.upper() for col in header]] + rows
+    style.append(('GRID', (0, 0), (-1, -1), 0.5, colors.black))
+    ratios = calc_col_ratios(rows)
+    col_widths = col_widths_by_ratio(ratios)
+    table = Table(rows, style=style, colWidths=col_widths)
+    table.vAlign = 'MIDDLE'
+    return table
+
+
+def create_activity_body_table(computed_report, columns):
+    rows = []
+    style = [
+        ('BACKGROUND', (0, 0), (-1, 0), colors.black),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTSIZE', (0, 0), (-1, 0), 8),
+        ('LEFTPADDING', (0, 0), (-1, 0), 1),
+    ]
+    header = [col for col, available in columns.items() if available]
+    subject_reports = computed_report.subject_reports
+    for subject_report in subject_reports:
+        subject = subject_report.subject
+        cols = [{
+            'col': 'code',
+            'name': 'code'
+        }, {
+            'col': 'subject',
+            'name': 'name'
+        }]
+        cols2 = [{
+            'col': 'total scores',
+            'name': 'activity_total_scores'
+        }, {
+            'col': 'average',
+            'name': 'activity_average_score'
+        }, {
+            'col': 'identifier',
+            'name': 'activity_score'
+        }, {
+            'col': 'achievement',
+            'name': 'activity_score_identifier'
+        }, {
+            'col': 'initials',
+            'name': 'subject_teacher_initials'
+        }]
+        row = []
+        for col in cols:
+            row.append(getattr(subject, col['name']))
+        
+        for col in cols2:
+            row.append(getattr(subject_report, col['name']))
+       
+        rows.append(row)
+ 
+
     rows = [[col.upper() for col in header]] + rows
     style.append(('GRID', (0, 0), (-1, -1), 0.5, colors.black))
     ratios = calc_col_ratios(rows)

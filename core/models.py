@@ -85,8 +85,6 @@ class Profile(TimeStampedModel):
     telephone = models.CharField(max_length=16, null=True, unique=True)
     signature = ResizedImageField(upload_to=user_signature_upload_location, storage=OverwiteStorageSystem, null=True, blank=True)
 
-
-
     def __str__(self):
         return self.user
 

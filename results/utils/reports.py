@@ -95,7 +95,12 @@ def compute_student_report(student, grading_system, period):
             subject_report.papers.append(paper_report)
 
         activities = [activity for activity in models.Activity.objects.filter(class_room=student.class_room, subject=subject, period=period)]
+        # print(activities)
+        scores = models.ActivityScore.objects.filter(student=student, activity__in=[act.id for act in activities])
+        subject_report.activity_scores = scores
         for activity in activities:
+            # scores = [score.mark for score in activity.activityscore_set.filter(student=student).all()]
+            # print(scores)
             score = models.ActivityScore.objects.filter(activity=activity, student=student).first()
             if score: mark = score.mark
             else: mark = 0
@@ -171,6 +176,7 @@ class SubjectReport:
     activities = []
     skills = ''
     remarks = ''
+    activity_scores = []
 
     def __init__(self, grading_system, subject=None, papers=[], activities=[]):
         self.grading_system = grading_system
@@ -201,13 +207,39 @@ class SubjectReport:
         else:
             self.subject_teacher_initials = ''
     
+    def __set_activity_total_scores(self):
+        self.activity_total_scores = sum([score.mark for score in self.activity_scores])
+
+    def __set_activity_average_score(self):
+        try:
+            self.activity_average_score = self.activity_total_scores/len(self.activity_scores)
+        except ZeroDivisionError:
+            self.activity_average_score = 0
+
+    def __set_activity_score(self):
+        self.activity_score = round(self.activity_average_score/10*3, 1)
+
+    def __set_activity_score_identifier(self):
+        if self.activity_score >= 0.9 and self.activity_score <= 1.49:
+            self.activity_score_identifier = "Basic"
+        elif self.activity_score >= 1.5 and self.activity_score <= 2.49:
+            self.activity_score_identifier = "Moderate"
+        elif self.activity_score >= 2.5 and self.activity_score <= 3:
+            self.activity_score_identifier = "Outstanding"
+        else:
+            self.activity_score_identifier = ''
+
     def set_values(self):
         self.__set_average()
         self.__set_aggregate()
         self.__set_letter_grade()
         self.__set_points()
         self.__set_subject_teacher_initals()
-    
+        self.__set_activity_total_scores()
+        self.__set_activity_average_score()
+        self.__set_activity_score()
+        self.__set_activity_score_identifier()
+
 
 class PaperReport:
     paper = None
