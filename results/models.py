@@ -168,6 +168,7 @@ class Student(TimeStampedModel):
     middle_name = models.CharField(max_length=64, null=True, blank=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     dob = models.DateField(null=True)
+    house = models.CharField(max_length=64, null=True, blank=True)
     nationality = models.CharField(max_length=128, choices=NATIONALITIES)
     picture = ResizedImageField(upload_to=student_picture_upload_location, storage=OverwiteStorageSystem, null=True, blank=True)
     class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)

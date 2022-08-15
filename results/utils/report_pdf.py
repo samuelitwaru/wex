@@ -118,18 +118,17 @@ def create_student_table(computed_report):
         student.picture = 'profile-placeholder.png'
     image = get_image(f'{settings.MEDIA_ROOT}/{student.picture}')
     rows = [
-        [image, 'Name', f'{student}', 'Result'],
-        ['', 'Class', f'{class_room.name} {class_room.stream or ""}', ''],
-        ['', 'REG/NO', f'{student.index_no}', result],
-        ['', 'Sex', f'{student.gender}', ''],
-        ['', 'Age', f'{student.age}', ''],
+        [image, 'Name', f'{student}', 'Sex',f'{student.gender}', 'Result'],
+        ['', 'Class', f'{class_room.name} {class_room.stream or ""}', 'Age',f'{student.age or "_"}', ''],
+        ['', 'REG/NO', f'{student.index_no}', 'House',f'{student.house or ""}', result],
     ]
-    style = [('SPAN', (0, 0), (0, 3)), ('LEFTPADDING', (0, 0), (0, 3), 0),
-             ('SPAN', (3, 0), (3, 1)), ('SPAN', (3, 2), (3, 3)),
+    style = [('SPAN', (0, 0), (0, 2)), ('LEFTPADDING', (0, 0), (0, 2), 0),
+            #  ('SPAN', (3, 0), (3, 1)), ('SPAN', (3, 2), (3, 3)),
              ('GRID', (1, 0), (-1, -1), 0.5, colors.black), VALIGN_MIDDLE]
     table = Table(data=stretch_data(rows),
                   style=style,
-                  colWidths=col_widths_by_ratio([1.5, 1, 5, 2]))
+                #   colWidths=col_widths_by_ratio([1.5, 1, 5, 2])
+                )
     return table
 
 def create_student_table2(computed_report):
@@ -139,17 +138,17 @@ def create_student_table2(computed_report):
         student.picture = 'profile-placeholder.png'
     image = get_image(f'{settings.MEDIA_ROOT}/{student.picture}')
     rows = [
-        [image, 'Name', f'{student}'],
-        ['', 'Class', f'{class_room.name} {class_room.stream or ""}'],
-        ['', 'REG/NO', f'{student.index_no}'],
-        ['', 'Sex', f'{student.gender}'],
+        [image, 'Name', f'{student}', 'Sex',f'{student.gender}'],
+        ['', 'Class', f'{class_room.name} {class_room.stream or ""}', 'Age',f'{student.age or "_"}'],
+        ['', 'REG/NO', f'{student.index_no}', 'House',f'{student.house or ""}'],
     ]
-    style = [('SPAN', (0, 0), (0, 3)), ('LEFTPADDING', (0, 0), (0, 3), 0),
+    style = [('SPAN', (0, 0), (0, 2)), ('LEFTPADDING', (0, 0), (0, 2), 0),
             #  ('SPAN', (3, 0), (3, 1)), ('SPAN', (3, 2), (3, 3)),
              ('GRID', (1, 0), (-1, -1), 0.5, colors.black), VALIGN_MIDDLE]
     table = Table(data=stretch_data(rows),
                   style=style,
-                  colWidths=col_widths_by_ratio([1.5, 1, 5]))
+                #   colWidths=col_widths_by_ratio([1.5, 1, 5])
+                  )
     return table
 
 
