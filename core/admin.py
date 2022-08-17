@@ -4,3 +4,4 @@ from core.models import *
 
 # Register your models here.
 admin.site.register(Entity)
+admin.site.register(Profile)
