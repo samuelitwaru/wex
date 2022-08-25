@@ -1,4 +1,5 @@
 from core.models import Profile, Entity, User
+from results.models import Student
 from django.contrib.auth.models import Group
 
 
@@ -33,3 +34,10 @@ def init():
     user.save()
     dos_group = Group.objects.get(name='dos')
     dos_group.user_set.add(user)
+
+def populate_student_nos():
+    for instance in Student.objects.all():
+        if not instance.index_no:
+            instance.index_no = f'RES/{instance.created_at.year}/{str(instance.id).zfill(4)}'
+            instance.save()
+

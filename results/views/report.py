@@ -135,6 +135,26 @@ class ReportViewSet(viewsets.ModelViewSet):
         queryset.update(**data)
         serializer = self.get_serializer(queryset1, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False,
+            methods=['PUT'],
+            name='update_report_competency_comment',
+            url_path='competency/comment')
+    def update_report_competency_comment(self, request, *args, **kwargs):
+        data = request.data
+        queryset1 = Report.objects.filter(id__in=data.get('reports'))
+        queryset = queryset1
+        overwrite = data.get('overwrite')
+        del data['reports']
+        del data['overwrite']
+        if not overwrite:
+            if data.get('competency_class_teacher_comment'):
+                queryset = queryset.filter(competency_class_teacher_comment="")
+            if data.get('competency_head_teacher_comment'):
+                queryset = queryset.filter(competency_head_teacher_comment="")
+        queryset.update(**data)
+        serializer = self.get_serializer(queryset1, many=True)
+        return Response(serializer.data)
 
     @action(detail=False,
             methods=['POST'],
