@@ -58,3 +58,6 @@ class ComputedReportSerializer(serializers.Serializer):
     average = serializers.IntegerField()
     aggregates = serializers.IntegerField()
     points = serializers.IntegerField()
+
+    total_scores = serializers.IntegerField()
+    average_scores = serializers.IntegerField()

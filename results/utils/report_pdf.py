@@ -227,6 +227,21 @@ def create_score_key_table():
     return table
 
 
+def create_competency_result_table(computed_report):
+    rows = [
+       ['Total',f'{computed_report.total_scores}','Average',f'{round(computed_report.average_scores, 2)}']
+    ]
+    style = [
+        BLACK_GRID
+    ]
+    # ratios = calc_col_ratios(rows)
+    table = Table(data=stretch_data(rows),
+                  colWidths=col_widths_by_ratio([3,1,3,1]),
+                  style=style
+                  )
+    return table
+
+
 class PDFReport:
 
     def __init__(self, computed_report, report_type, columns, grading_system, period):
@@ -268,6 +283,10 @@ class PDFReport:
             gs_table = create_grading_system_table(self.grading_system)
             self.elements.insert(5, gs_table)
             self.elements.insert(5, space)
+        if self.report_type == 'activity':
+            self.elements.append(space)
+            result_table = create_competency_result_table(self.computed_report)
+            self.elements.append(result_table)
         self.elements.append(space)
         self.elements.append(comment_table)
         self.elements.append(space)

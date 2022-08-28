@@ -95,12 +95,10 @@ def compute_student_report(student, grading_system, period):
             subject_report.papers.append(paper_report)
 
         activities = [activity for activity in models.Activity.objects.filter(class_room=student.class_room, subject=subject, period=period)]
-        # print(activities)
         scores = models.ActivityScore.objects.filter(student=student, activity__in=[act.id for act in activities])
         subject_report.activity_scores = scores
         for activity in activities:
             # scores = [score.mark for score in activity.activityscore_set.filter(student=student).all()]
-            # print(scores)
             score = models.ActivityScore.objects.filter(activity=activity, student=student).first()
             if score: mark = score.mark
             else: mark = 0
@@ -164,10 +162,18 @@ class ComputedReport:
     def __set_average(self):
         self.average = sum([subj.average for subj in self.subject_reports])/len(self.subject_reports)
     
+    def __set_total_scores(self):
+        self.total_scores = sum([subj.activity_total_scores for subj in self.subject_reports])
+
+    def __set_average_scores(self):
+        self.average_scores = self.total_scores/len(self.subject_reports)
+
     def set_values(self):
         self.__set_average()
         self.__set_aggregates()
         self.__set_points()
+        self.__set_total_scores()
+        self.__set_average_scores()
 
 
 class SubjectReport:
