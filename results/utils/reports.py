@@ -163,7 +163,7 @@ class ComputedReport:
         self.average = sum([subj.average for subj in self.subject_reports])/len(self.subject_reports)
     
     def __set_total_scores(self):
-        self.total_scores = sum([subj.activity_total_scores for subj in self.subject_reports])
+        self.total_scores = sum([subj.activity_score for subj in self.subject_reports])
 
     def __set_average_scores(self):
         self.average_scores = self.total_scores/len(self.subject_reports)
