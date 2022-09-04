@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from results.serializers import assessment
 from rest_framework.response import Response
 
-from results.utils.report_pdf import ScoresPDF
+from results.utils.pdf_report.scores_report import ScoresPDF
 from utils import get_host_name
 from ..models import Score
 from ..serializers import ScoreSerializer

@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 
-from results.utils.report_pdf import ScoresPDF
+from results.utils.pdf_report.scores_report import ScoresPDF
 from utils import get_host_name
 from ..models import ActivityScore
 from ..serializers import ActivityScoreSerializer

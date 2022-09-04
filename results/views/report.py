@@ -2,9 +2,11 @@ import json
 from django.http import FileResponse
 from rest_framework import viewsets
 from results.serializers.report import ComputedReportSerializer
+from results.utils.pdf_report.competency_report import CompetencePDFReport
+from results.utils.pdf_report.termly_report import TermlyPDFReport
 from utils import get_host_name
 from results.utils import compute_student_report
-from results.utils.report_pdf import BulkPDFReport, PDFReport
+from results.utils.pdf_report.bulk_report import BulkPDFReport
 from ..models import ClassRoom, GradingSystem, Period, Report, Student
 from ..serializers import ReportSerializer
 from rest_framework.decorators import action
@@ -79,16 +81,21 @@ class ReportViewSet(viewsets.ModelViewSet):
                 f'computed_report{student.id}', 
                 compute_student_report(student, grading_system, period)
                 )
-        # report, computed_report = compute_student_report(
-            # student, grading_system, period)
         serializer = ComputedReportSerializer(computed_report)
         columns = request.data.get('columns')
         report_type = request.data.get('report_type')
-        pdf_report = PDFReport(computed_report,
-                               report_type=report_type,
+        if report_type == 'activity':
+            pdf_report = CompetencePDFReport(computed_report,
                                columns=columns,
                                grading_system=grading_system,
-                               period=period)
+                               period=period
+                               )
+        else:
+            pdf_report = TermlyPDFReport(computed_report,
+                                columns=columns,
+                                grading_system=grading_system,
+                                period=period)
+        
         doc = pdf_report.run()
         filename = os.path.basename(doc.filename)
         host = get_host_name(request)

@@ -9,6 +9,8 @@ import os.path
 from core.models import Entity, Profile
 from results.models import Period
 from results.serializers import assessment, grading_system
+from results.utils.pdf_report.competency_report import CompetencePDFReport
+from results.utils.pdf_report.termly_report import TermlyPDFReport
 from results.utils.reports import wrap_aggr
 from django.contrib.auth.models import User
 
@@ -295,6 +297,39 @@ class PDFReport:
             score_key_table = create_score_key_table()
             self.elements.append(space)
             self.elements.append(score_key_table)
+    
+    def create_activity_report_elements(self):
+        self.elements = []
+        entity_table = self.create_entity_table()
+        student_table = self.create_student_table()
+        if self.report_type == 'assessment':
+            body_table = self.create_body_table()
+        else:
+            body_table = self.create_activity_body_table()
+        comment_table = self.create_comment_table()
+        next_term_table = create_next_term_table()
+        for element in [
+                entity_table, hr, student_table, space, body_table, space
+        ]:
+            self.elements.append(element)
+        if self.report_type == 'assessment':
+            result_table = self.create_result_table()
+            self.elements.append(result_table)
+            gs_table = create_grading_system_table(self.grading_system)
+            self.elements.insert(5, gs_table)
+            self.elements.insert(5, space)
+        if self.report_type == 'activity':
+            self.elements.append(space)
+            result_table = create_competency_result_table(self.computed_report)
+            self.elements.append(result_table)
+        self.elements.append(space)
+        self.elements.append(comment_table)
+        self.elements.append(space)
+        self.elements.append(next_term_table)
+        if self.report_type == 'activity':
+            score_key_table = create_score_key_table()
+            self.elements.append(space)
+            self.elements.append(score_key_table)
 
     def run(self):
         self.create_elements()
@@ -319,7 +354,6 @@ class PDFReport:
             return create_student_table(self.computed_report)
         return create_student_table2(self.computed_report)
         
-
     def create_body_table(self):
         return create_assessment_body_table(self.computed_report, self.columns)
 
@@ -665,7 +699,10 @@ class BulkPDFReport:
     def create_elements(self):
         self.elements = []
         for computed_report in self.computed_reports:
-            report = PDFReport(computed_report, self.report_type, self.columns, self.grading_system, self.period)
+            if self.report_type == 'assessment':
+                report = TermlyPDFReport(computed_report, self.columns, self.grading_system, self.period)
+            else:
+                report = CompetencePDFReport(computed_report, self.columns, self.grading_system, self.period)
             report.create_elements()
             self.elements += report.elements
             self.elements.append(PageBreak())
