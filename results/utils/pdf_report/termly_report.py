@@ -2,7 +2,7 @@ from django.conf import settings
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table
 from reportlab.lib import colors
-import os.path
+from results.utils.reports import wrap_aggr
 from core.models import Entity
 from .utils import *
 from .competency_report import create_comment_table, create_next_term_table
@@ -213,6 +213,7 @@ class TermlyPDFReport:
     def create_elements(self):
         self.elements = []
         entity_table = create_header(self.title)
+        title = style_paragraph(self.title.upper(), heading_style2)
         student_table = create_student_table(self.computed_report)
         body_table = create_body_table(self.computed_report, self.columns)
         gs_table = create_grading_system_table(self.grading_system)
@@ -222,7 +223,7 @@ class TermlyPDFReport:
         next_term_table = create_next_term_table()
 
         for element in [
-            entity_table, hr, student_table, space, body_table, space, gs_table,
+            entity_table, space, title, hr, student_table, space, body_table, space, gs_table,
             space, result_table, space, comment_table, space, next_term_table
         ]:
             self.elements.append(element)

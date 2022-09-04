@@ -192,7 +192,7 @@ class SubjectReport:
 
     def __set_average(self):
         try:
-            self.average = sum([paper.average for paper in self.papers])/len(self.papers)
+            self.average = round(sum([paper.average for paper in self.papers])/len(self.papers), 2)
         except ZeroDivisionError:
             self.average = 0
     def __set_aggregate(self):

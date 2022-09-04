@@ -116,7 +116,7 @@ def create_activity_body_table(computed_report, columns):
             for col in cols2:
                 if columns.get(col['col']):
                     span_row.append(getattr(activity, col['name']))
-            [span_row.append('') for col in cols3 if columns.get(col['col'])]
+            # [span_row.append('') for col in cols3 if columns.get(col['col'])]
             rows.append(span_row)
     rows = [[col.upper() for col in header]] + rows
     style.append(('GRID', (0, 0), (-1, -1), 0.5, colors.black))
