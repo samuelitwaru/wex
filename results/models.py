@@ -181,6 +181,7 @@ class Student(TimeStampedModel):
     
     @property
     def age(self):
+        print(self.dob)
         if self.dob:
             delta = datetime.now().year - self.dob.year
             return delta
