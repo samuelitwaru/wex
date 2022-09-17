@@ -78,24 +78,22 @@ class ReportViewSet(viewsets.ModelViewSet):
             report, computed_report = res
         else:
             report, computed_report = cache.get_or_set(
-                f'computed_report{student.id}', 
-                compute_student_report(student, grading_system, period)
-                )
+                f'computed_report{student.id}',
+                compute_student_report(student, grading_system, period))
         serializer = ComputedReportSerializer(computed_report)
         columns = request.data.get('columns')
         report_type = request.data.get('report_type')
         if report_type == 'activity':
             pdf_report = CompetencePDFReport(computed_report,
-                               columns=columns,
-                               grading_system=grading_system,
-                               period=period
-                               )
+                                             columns=columns,
+                                             grading_system=grading_system,
+                                             period=period)
         else:
             pdf_report = TermlyPDFReport(computed_report,
-                                columns=columns,
-                                grading_system=grading_system,
-                                period=period)
-        
+                                         columns=columns,
+                                         grading_system=grading_system,
+                                         period=period)
+
         doc = pdf_report.run()
         filename = os.path.basename(doc.filename)
         host = get_host_name(request)
@@ -125,6 +123,61 @@ class ReportViewSet(viewsets.ModelViewSet):
 
     @action(detail=False,
             methods=['PUT'],
+            name='bulk_competency_report_comment',
+            url_path='competency/comment/bulk')
+    def bulk_competency_report_comment(self, request, *args, **kwargs):
+        data = request.data
+        query = Report.objects.filter(
+            competency_score__gte=data.get('competency_score__gte'),
+            competency_score__lte=data.get('competency_score__lte'),
+            student__class_room=data.get('student__class_room'),
+        )
+        overwrite = data.get('overwrite')
+        teacher_group = data.get('teacher_group')
+        comment = data.get('comment')
+        if teacher_group == 'head':
+            if not overwrite:
+                query = query.filter(competency_head_teacher_comment='')
+            query.update(competency_head_teacher_comment=comment)
+        else:
+            if not overwrite:
+                query = query.filter(competency_class_teacher_comment='')
+            query.update(competency_class_teacher_comment=comment)
+        serializer = self.get_serializer(query, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False,
+            methods=['PUT'],
+            name='bulk_termly_report_comment',
+            url_path='termly/comment/bulk')
+    def bulk_termly_report_comment(self, request, *args, **kwargs):
+        data = request.data
+        level_group_name = data.get('level_group_name')
+        if level_group_name == 'A':
+            query = Report.objects.filter(
+                points__gte=data.get('points__gte'),
+                points__lte=data.get('points__lte'),
+                student__class_room=data.get('student__class_room'))
+        else:
+            query = Report.objects.filter(
+                aggregates__gte=data.get('aggregates__gte'),
+                aggregates__lte=data.get('aggregates__lte'))
+        overwrite = data.get('overwrite')
+        teacher_group = data.get('teacher_group')
+        comment = data.get('comment')
+        if teacher_group == 'head':
+            if not overwrite:
+                query = query.filter(head_teacher_comment='')
+            query.update(head_teacher_comment=comment)
+        else:
+            if not overwrite:
+                query = query.filter(class_teacher_comment='')
+            query.update(class_teacher_comment=comment)
+        serializer = self.get_serializer(query, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False,
+            methods=['PUT'],
             name='update_report_comment',
             url_path='comment')
     def update_report_comment(self, request, *args, **kwargs):
@@ -142,7 +195,7 @@ class ReportViewSet(viewsets.ModelViewSet):
         queryset.update(**data)
         serializer = self.get_serializer(queryset1, many=True)
         return Response(serializer.data)
-    
+
     @action(detail=False,
             methods=['PUT'],
             name='update_report_competency_comment',
@@ -192,7 +245,7 @@ class ReportViewSet(viewsets.ModelViewSet):
             bulk_report = res
         else:
             bulk_report = BulkPDFReport(computed_reports, report_type, columns,
-                                    grading_system, period)
+                                        grading_system, period)
             cache.set(f'class_room_report_{class_room.id}', bulk_report)
         doc = bulk_report.run()
         filename = os.path.basename(doc.filename)

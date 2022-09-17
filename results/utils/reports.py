@@ -12,7 +12,7 @@ def wrap_aggr(aggr):
         return f'F{aggr}'
 
 
-def compute_subject_grade(aggregates=[8,8,3]):
+def compute_subject_grade(aggregates=[8, 8, 3]):
     '''computes the letter grade for a subject i.e A,B,C,D,E,O and F using the provided aggregates e.g [8,8,3]'''
     n = len(aggregates)
     if n:
@@ -23,19 +23,19 @@ def compute_subject_grade(aggregates=[8,8,3]):
 
         if n > 2:
             if worst <= 3:
-                if n_worst == 1: return "A" 
+                if n_worst == 1: return "A"
                 else: return "B"
             elif worst <= 4:
-                if n_worst == 1: return "B" 
+                if n_worst == 1: return "B"
                 else: return "C"
             elif worst <= 5:
-                if n_worst == 1: return "C" 
+                if n_worst == 1: return "C"
                 else: return "D"
             elif worst <= 6:
-                if n_worst == 1: return "D" 
+                if n_worst == 1: return "D"
                 else: return "E"
             elif worst <= 7:
-                if n_worst == 1: return "E" 
+                if n_worst == 1: return "E"
                 else: return "O"
             elif worst <= 8:
                 if n_worst == 1:
@@ -61,45 +61,66 @@ def compute_subject_grade(aggregates=[8,8,3]):
             elif worst <= 4: return "C"
             elif worst <= 5: return "D"
             elif worst <= 6: return "E"
-            elif( worst == 7 or worst == 8) and sum(aggregates) <= 12: return "E"
-            elif( worst == 7 or worst == 8) and sum(aggregates) <= 16: return "O"
-            elif worst==9 and sum(aggregates) <= 16: return "O"
+            elif (worst == 7 or worst == 8) and sum(aggregates) <= 12:
+                return "E"
+            elif (worst == 7 or worst == 8) and sum(aggregates) <= 16:
+                return "O"
+            elif worst == 9 and sum(aggregates) <= 16:
+                return "O"
     return "F"
-        
+
 
 def compute_student_report(student, grading_system, period):
     '''
     - generates a computed report object for the specified student, using the specified grading system, in the specified period
     - returns a model report object and a computed report object i.e (report, computed_report)
     '''
-    report, created = models.Report.objects.get_or_create(period=period, student=student)
+    report, created = models.Report.objects.get_or_create(period=period,
+                                                          student=student)
     computed_report = ComputedReport(student, report, [])
-    subjects = models.Subject.objects.filter(is_selectable=False, level_group=student.class_room.level.level_group).union(student.subjects.all())
+    subjects = models.Subject.objects.filter(
+        is_selectable=False,
+        level_group=student.class_room.level.level_group).union(
+            student.subjects.all())
     for subject in subjects:
-        custom_grading_system = models.CustomGradingSystem.objects.filter(class_room=student.class_room, subject=subject).first()
+        custom_grading_system = models.CustomGradingSystem.objects.filter(
+            class_room=student.class_room, subject=subject).first()
         if custom_grading_system:
             grading_system = custom_grading_system.grading_system
         subject_report = SubjectReport(grading_system, subject, [], [])
         papers = subject.papers.all()
         papers = student.class_room.level.papers.filter(subject=subject)
-        allocation = models.PaperAllocation.objects.filter(paper=papers.first(), class_room=student.class_room).first()
-        
+        allocation = models.PaperAllocation.objects.filter(
+            paper=papers.first(), class_room=student.class_room).first()
+
         if allocation: subject_report.teacher = allocation.teacher
         else: subject_report.teacher = None
         if len(papers) == 0:
             continue
         for paper in papers:
-            assessment_ids = [assessment.id for assessment in models.Assessment.objects.filter(paper=paper, period=period, class_room=student.class_room)]
-            scores = [score.mark for score in models.Score.objects.filter(assessment__in=assessment_ids, student=student)]
+            assessment_ids = [
+                assessment.id
+                for assessment in models.Assessment.objects.filter(
+                    paper=paper, period=period, class_room=student.class_room)
+            ]
+            scores = [
+                score.mark for score in models.Score.objects.filter(
+                    assessment__in=assessment_ids, student=student)
+            ]
             paper_report = PaperReport(grading_system, paper, scores)
             subject_report.papers.append(paper_report)
 
-        activities = [activity for activity in models.Activity.objects.filter(class_room=student.class_room, subject=subject, period=period)]
-        scores = models.ActivityScore.objects.filter(student=student, activity__in=[act.id for act in activities])
+        activities = [
+            activity for activity in models.Activity.objects.filter(
+                class_room=student.class_room, subject=subject, period=period)
+        ]
+        scores = models.ActivityScore.objects.filter(
+            student=student, activity__in=[act.id for act in activities])
         subject_report.activity_scores = scores
         for activity in activities:
             # scores = [score.mark for score in activity.activityscore_set.filter(student=student).all()]
-            score = models.ActivityScore.objects.filter(activity=activity, student=student).first()
+            score = models.ActivityScore.objects.filter(
+                activity=activity, student=student).first()
             if score: mark = score.mark
             else: mark = 0
             activity_report = ActivityReport(activity, mark)
@@ -109,9 +130,9 @@ def compute_student_report(student, grading_system, period):
     computed_report.set_values()
     report.points = computed_report.points
     report.aggregates = computed_report.aggregates
+    report.competency_score = computed_report.average_scores
     report.save()
     return report, computed_report
-
 
 
 class ComputedReport:
@@ -130,7 +151,7 @@ class ComputedReport:
     points = 0
     aggregates = 0
     average = 0
-    
+
     def __init__(self, student, report, subject_reports=[]):
         self.student = student
         self.report = report
@@ -138,15 +159,15 @@ class ComputedReport:
 
     def add_subject_report(self, subject_report):
         self.subject_reports.append(subject_report)
-    
+
     def __set_points(self):
         self.points = sum([subj.points for subj in self.subject_reports])
-    
+
     def __set_aggregates(self):
         compulsories = []
         optionals = []
         for subj in self.subject_reports:
-            if subj.subject.is_selectable: optionals.append(subj.aggregate) 
+            if subj.subject.is_selectable: optionals.append(subj.aggregate)
             else: compulsories.append(subj.aggregate)
         compulsories.sort()
         optionals.sort()
@@ -160,13 +181,16 @@ class ComputedReport:
             self.aggregates = sum(compulsories)
 
     def __set_average(self):
-        self.average = sum([subj.average for subj in self.subject_reports])/len(self.subject_reports)
-    
+        self.average = sum([subj.average for subj in self.subject_reports
+                            ]) / len(self.subject_reports)
+
     def __set_total_scores(self):
-        self.total_scores = sum([subj.activity_score for subj in self.subject_reports])
+        self.total_scores = sum(
+            [subj.activity_score for subj in self.subject_reports])
 
     def __set_average_scores(self):
-        self.average_scores = round(self.total_scores/len(self.subject_reports), 2)
+        self.average_scores = round(
+            self.total_scores / len(self.subject_reports), 2)
 
     def set_values(self):
         self.__set_average()
@@ -192,19 +216,40 @@ class SubjectReport:
 
     def __set_average(self):
         try:
-            self.average = round(sum([paper.average for paper in self.papers])/len(self.papers), 2)
+            self.average = round(
+                sum([paper.average
+                     for paper in self.papers]) / len(self.papers), 2)
         except ZeroDivisionError:
             self.average = 0
+
     def __set_aggregate(self):
         self.aggregate = self.grading_system.grade(self.average)
+
     def __set_letter_grade(self):
-        self.letter_grade = compute_subject_grade(
-            [self.grading_system.grade(paper.average) for paper in self.papers]
-            )
+        self.letter_grade = compute_subject_grade([
+            self.grading_system.grade(paper.average) for paper in self.papers
+        ])
+
     def __set_points(self):
-        mapper = {"A":6,"B":5,"C":4,"D":3,"E":2,"O":1,"F":0,}
+        mapper = {
+            "A": 6,
+            "B": 5,
+            "C": 4,
+            "D": 3,
+            "E": 2,
+            "O": 1,
+            "F": 0,
+        }
         if self.subject.is_subsidiary:
-            mapper = {"A":1,"B":1,"C":1,"D":1,"E":1,"O":1,"F":0,}
+            mapper = {
+                "A": 1,
+                "B": 1,
+                "C": 1,
+                "D": 1,
+                "E": 1,
+                "O": 1,
+                "F": 0,
+            }
         self.points = mapper[self.letter_grade]
 
     def __set_subject_teacher_initals(self):
@@ -212,18 +257,20 @@ class SubjectReport:
             self.subject_teacher_initials = self.teacher.initials
         else:
             self.subject_teacher_initials = ''
-    
+
     def __set_activity_total_scores(self):
-        self.activity_total_scores = sum([score.mark for score in self.activity_scores])
+        self.activity_total_scores = sum(
+            [score.mark for score in self.activity_scores])
 
     def __set_activity_average_score(self):
         try:
-            self.activity_average_score = self.activity_total_scores/len(self.activity_scores)
+            self.activity_average_score = self.activity_total_scores / len(
+                self.activity_scores)
         except ZeroDivisionError:
             self.activity_average_score = 0
 
     def __set_activity_score(self):
-        self.activity_score = round(self.activity_average_score/10*3, 1)
+        self.activity_score = round(self.activity_average_score / 10 * 3, 1)
 
     def __set_activity_score_identifier(self):
         if self.activity_score >= 0.9 and self.activity_score <= 1.49:
@@ -250,6 +297,7 @@ class SubjectReport:
 class PaperReport:
     paper = None
     scores = []
+
     def __init__(self, grading_system, paper, scores):
         self.grading_system = grading_system
         self.paper = paper
@@ -260,22 +308,26 @@ class PaperReport:
         self.score = self.__compute_score()
         self.descriptor = self.__compute_descriptor()
         self.aggregate = self.grading_system.grade(self.average)
-    
+
     @property
     def scores_string(self):
         return str(self.scores).lstrip('[').rstrip(']')
 
     def __compute_aggregates(self):
         return [self.grading_system.grade(score) for score in self.scores]
+
     def __compute_total(self):
         return sum(self.scores)
+
     def __compute_average(self):
         try:
-            return self.total/len(self.scores)
+            return self.total / len(self.scores)
         except ZeroDivisionError:
             return 0
+
     def __compute_score(self):
-        return round(self.average/100*3, 1)
+        return round(self.average / 100 * 3, 1)
+
     def __compute_descriptor(self):
         if self.score >= 0.9 and self.score <= 1.49:
             return "Basic"
@@ -289,14 +341,17 @@ class PaperReport:
 class ActivityReport:
     activity = None
     scores = []
+
     def __init__(self, activity, mark):
         self.activity = activity
         self.name = activity.name
         self.mark = mark
         self.score = self.__compute_score()
         self.descriptor = self.__compute_descriptor()
+
     def __compute_score(self):
-        return round(self.mark/10*3, 1)
+        return round(self.mark / 10 * 3, 1)
+
     def __compute_descriptor(self):
         if self.score >= 0.9 and self.score <= 1.49:
             return "Basic"
@@ -305,5 +360,3 @@ class ActivityReport:
         elif self.score >= 2.5 and self.score <= 3:
             return "Outstanding"
         return ''
-    
-

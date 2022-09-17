@@ -13,7 +13,6 @@ from django_resized import ResizedImageField
 from django.db import transaction
 from utils import OverwiteStorageSystem, range_with_floats
 
-
 LEVEL_CHOICES = [
     ("S.1", "S.1"),
     ("S.2", "S.2"),
@@ -24,20 +23,19 @@ LEVEL_CHOICES = [
 ]
 
 GENDER_CHOICES = (
-        ('M', 'Male'),
-        ('F', 'Female'),
-    )
+    ('M', 'Male'),
+    ('F', 'Female'),
+)
 
 SUBJECT_FIELD_CHOICES = (
-        ('Arts', 'Arts'),
-        ('Science', 'Science'),
-    )
+    ('Arts', 'Arts'),
+    ('Science', 'Science'),
+)
 
 PROMOTION_STATUS_CHOICES = [
     ('PENDING', 'PENDING'),
     ('APPROVED', 'APPROVED'),
 ]
-
 
 LEVEL_GROUP_CHOICES = tuple(LEVEL_GROUPS.items())
 
@@ -53,9 +51,11 @@ def student_picture_upload_location(instance, filename):
     _, extension = filename.split('.')
     return f'students/pictures/{instance.id}.{extension}'
 
+
 def teacher_picture_upload_location(instance, filename):
     _, extension = filename.split('.')
     return f'teachers/pictures/{instance.id}.{extension}'
+
 
 def period_default():
     try:
@@ -63,8 +63,10 @@ def period_default():
     except Period.DoesNotExist:
         return None
 
+
 def default_user_prefs():
     return DEFAULT_USER_PREFS
+
 
 class Period(TimeStampedModel):
     name = models.CharField(max_length=128)
@@ -99,8 +101,10 @@ class Subject(TimeStampedModel):
 class Paper(TimeStampedModel):
     number = models.IntegerField()
     description = models.CharField(max_length=128, null=True, blank=True)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='papers')
-    
+    subject = models.ForeignKey(Subject,
+                                on_delete=models.CASCADE,
+                                related_name='papers')
+
     class Meta:
         unique_together = ('number', 'subject')
         ordering = ['subject']
@@ -116,11 +120,14 @@ class LevelGroup(TimeStampedModel):
     def __str__(self):
         return self.name
 
+
 class Level(TimeStampedModel):
     name = models.CharField(max_length=256)
     rank = models.IntegerField(unique=True)
     level_group = models.ForeignKey(LevelGroup, on_delete=models.CASCADE)
-    subjects = models.ManyToManyField('Subject', related_name='levels', blank=True)
+    subjects = models.ManyToManyField('Subject',
+                                      related_name='levels',
+                                      blank=True)
     papers = models.ManyToManyField('Paper', related_name='levels', blank=True)
 
     def __str__(self):
@@ -135,7 +142,7 @@ class ClassRoom(TimeStampedModel):
 
     class Meta:
         unique_together = ('name', 'stream')
-        ordering = ('level',)
+        ordering = ('level', )
 
     def __str__(self):
         return f"{self.name} {self.stream or ''}"
@@ -144,9 +151,14 @@ class ClassRoom(TimeStampedModel):
 class Teacher(TimeStampedModel):
     name = models.CharField(max_length=256)
     initials = models.CharField(max_length=8)
-    picture = ResizedImageField(upload_to=teacher_picture_upload_location, storage=OverwiteStorageSystem, null=True, blank=True)
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='teacher')
-    
+    picture = ResizedImageField(upload_to=teacher_picture_upload_location,
+                                storage=OverwiteStorageSystem,
+                                null=True,
+                                blank=True)
+    user = models.OneToOneField(User,
+                                on_delete=models.CASCADE,
+                                related_name='teacher')
+
     def __str__(self):
         return self.name
 
@@ -154,11 +166,14 @@ class Teacher(TimeStampedModel):
 class PaperAllocation(TimeStampedModel):
     class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
     paper = models.ForeignKey(Paper, on_delete=models.CASCADE)
-    teacher = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True, blank=True)
-    
+    teacher = models.ForeignKey(Teacher,
+                                on_delete=models.SET_NULL,
+                                null=True,
+                                blank=True)
+
     class Meta:
         unique_together = ('teacher', 'class_room', 'paper')
-        ordering=['class_room__level']
+        ordering = ['class_room__level']
 
 
 class Student(TimeStampedModel):
@@ -170,15 +185,21 @@ class Student(TimeStampedModel):
     dob = models.DateField(null=True)
     house = models.CharField(max_length=64, null=True, blank=True)
     nationality = models.CharField(max_length=128, choices=NATIONALITIES)
-    picture = ResizedImageField(upload_to=student_picture_upload_location, storage=OverwiteStorageSystem, null=True, blank=True)
+    picture = ResizedImageField(upload_to=student_picture_upload_location,
+                                storage=OverwiteStorageSystem,
+                                null=True,
+                                blank=True)
     class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
-    subjects = models.ManyToManyField('Subject', related_name='students', blank=True)
+    subjects = models.ManyToManyField('Subject',
+                                      related_name='students',
+                                      blank=True)
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
+
     class Meta:
-        ordering=['class_room__level']
-    
+        ordering = ['class_room__level']
+
     @property
     def age(self):
         print(self.dob)
@@ -193,14 +214,18 @@ class AssessmentCategory(TimeStampedModel):
     def __str__(self):
         return self.name
 
+
 class Assessment(TimeStampedModel):
     date = models.DateField()
     paper = models.ForeignKey(Paper, on_delete=models.CASCADE)
     class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
-    period = models.ForeignKey(Period, on_delete=models.CASCADE, default=period_default)
+    period = models.ForeignKey(Period,
+                               on_delete=models.CASCADE,
+                               default=period_default)
     is_open = models.BooleanField(default=True)
-    assessment_category = models.ForeignKey(AssessmentCategory, on_delete=models.CASCADE)
+    assessment_category = models.ForeignKey(AssessmentCategory,
+                                            on_delete=models.CASCADE)
 
     class Meta:
         ordering = ['-id']
@@ -215,12 +240,15 @@ class Activity(TimeStampedModel):
     skills = models.JSONField()
     class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    period = models.ForeignKey(Period, on_delete=models.CASCADE, default=period_default)
+    period = models.ForeignKey(Period,
+                               on_delete=models.CASCADE,
+                               default=period_default)
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     is_open = models.BooleanField(default=True)
 
     def __str__(self):
         return f'{self.class_room} {self.name}'
+
 
 class ActivityScore(TimeStampedModel):
     activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
@@ -251,13 +279,15 @@ class GradingSystem(TimeStampedModel):
     P7 = models.IntegerField(default=49)
     P8 = models.IntegerField(default=39)
     F9 = models.IntegerField(default=29)
-    level_group = models.ForeignKey('LevelGroup', on_delete=models.CASCADE, related_name='grading_systems')    
+    level_group = models.ForeignKey('LevelGroup',
+                                    on_delete=models.CASCADE,
+                                    related_name='grading_systems')
     is_default = models.BooleanField(default=True)
 
     def __str__(self):
-        if self.is_default: return f"{self.name} (default)" 
+        if self.is_default: return f"{self.name} (default)"
         return self.name
-    
+
     def grade(self, mark):
         if mark <= self.F9: return 9
         elif mark <= self.P8: return 8
@@ -270,7 +300,6 @@ class GradingSystem(TimeStampedModel):
         elif mark <= self.D1: return 1
 
 
-
 class UserPref(models.Model):
     pref = models.JSONField(default=default_user_prefs)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -278,26 +307,41 @@ class UserPref(models.Model):
 
 class Report(TimeStampedModel):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    period = models.ForeignKey(Period, on_delete=models.CASCADE, default=period_default)
+    period = models.ForeignKey(Period,
+                               on_delete=models.CASCADE,
+                               default=period_default)
     class_teacher_comment = models.CharField(max_length=512, blank=True)
     head_teacher_comment = models.CharField(max_length=512, blank=True)
-    competency_class_teacher_comment = models.CharField(max_length=512, blank=True)
-    competency_head_teacher_comment = models.CharField(max_length=512, blank=True)
+    competency_class_teacher_comment = models.CharField(max_length=512,
+                                                        blank=True)
+    competency_head_teacher_comment = models.CharField(max_length=512,
+                                                       blank=True)
     computation = models.JSONField(null=True)
     aggregates = models.IntegerField(default=72, validators=O_RESULT_VALIDATOR)
     points = models.IntegerField(default=0, validators=A_RESULT_VALIDATOR)
-    level = models.ForeignKey(Level, on_delete=models.CASCADE, related_name='reports')
+    competency_score = models.FloatField(default=0,
+                                         validators=PERTENTH_VALIDATOR)
 
-    promo_from_class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE, null=True, related_name='promotions_from')
-    promo_to_class_room = models.ForeignKey(ClassRoom, on_delete=models.CASCADE, null=True, related_name='promotions_to')
+    level = models.ForeignKey(Level,
+                              on_delete=models.CASCADE,
+                              related_name='reports')
+
+    promo_from_class_room = models.ForeignKey(ClassRoom,
+                                              on_delete=models.CASCADE,
+                                              null=True,
+                                              related_name='promotions_from')
+    promo_to_class_room = models.ForeignKey(ClassRoom,
+                                            on_delete=models.CASCADE,
+                                            null=True,
+                                            related_name='promotions_to')
     promo_comment = models.CharField(max_length=512, null=True, blank=True)
     promo_is_approved = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ('student', 'period', 'level', 'promo_from_class_room', 'promo_to_class_room')
+        unique_together = ('student', 'period', 'level',
+                           'promo_from_class_room', 'promo_to_class_room')
         ordering = ['level']
 
-    
     def __str__(self):
         return f'{self.student} - {self.period}'
 
@@ -311,14 +355,17 @@ class CustomGradingSystem(TimeStampedModel):
         unique_together = ('class_room', 'subject', 'grading_system')
 
 
-
 # signals
 from django.db.models.signals import post_save, post_delete
 
 
 def create_student_report(sender, instance, **kwargs):
     if kwargs.get('created'):
-        Report.objects.create(**{'student':instance, 'level':instance.class_room.level})
+        Report.objects.create(**{
+            'student': instance,
+            'level': instance.class_room.level
+        })
+
 
 def create_student_index_no(sender, instance, **kwargs):
     if not instance.index_no:
@@ -331,41 +378,59 @@ def create_subject_papers(sender, instance, **kwargs):
         no_papers = instance.no_papers
         papers = []
         for n in range(0, no_papers):
-            paper = Paper(**{'number': n+1, 'description':f'Paper {n+1}', 'subject':instance})
+            paper = Paper(
+                **{
+                    'number': n + 1,
+                    'description': f'Paper {n+1}',
+                    'subject': instance
+                })
             paper.save()
             papers.append(paper)
         # papers = Paper.objects.bulk_create([Paper(**{'number': n+1, 'description':f'Paper {n+1}', 'subject':instance}) for n in range(0, no_papers)])
         for level in instance.level_group.level_set.all():
             level.papers.add(*papers)
 
+
 def enforce_grading_system_one_default(sender, instance, **kwargs):
-    defaults = GradingSystem.objects.filter(level_group=instance.level_group, is_default=True)
+    defaults = GradingSystem.objects.filter(level_group=instance.level_group,
+                                            is_default=True)
     if defaults.count() > 1:
         if not instance.is_default:
-            print('making new default') # make new default
-            new_default = GradingSystem.objects.filter(level_group=instance.level_group).first()
-            if new_default: new_default.is_default=True; new_default.save()
+            print('making new default')  # make new default
+            new_default = GradingSystem.objects.filter(
+                level_group=instance.level_group).first()
+            if new_default:
+                new_default.is_default = True
+                new_default.save()
         else:
-            print('removing other defaults') # remove other defaults 
+            print('removing other defaults')  # remove other defaults
             with transaction.atomic():
-                GradingSystem.objects.exclude(id=instance.id).filter(is_default=True, level_group=instance.level_group).update(is_default=False)
+                GradingSystem.objects.exclude(id=instance.id).filter(
+                    is_default=True,
+                    level_group=instance.level_group).update(is_default=False)
     elif defaults.count() < 1:
         print('making first default')
-        new_default = GradingSystem.objects.filter(level_group=instance.level_group).first()
-        if new_default: new_default.is_default=True; new_default.save()
+        new_default = GradingSystem.objects.filter(
+            level_group=instance.level_group).first()
+        if new_default:
+            new_default.is_default = True
+            new_default.save()
+
 
 def create_paper_allocations(sender, instance, **kwargs):
     levels = instance.subject.level_group.level_set.all()
     for level in levels:
         class_rooms = level.classroom_set.all()
         for class_room in class_rooms:
-            PaperAllocation.objects.get_or_create(paper=instance, class_room=class_room)
+            PaperAllocation.objects.get_or_create(paper=instance,
+                                                  class_room=class_room)
 
 
 def update_subject_no_papers(sender, instance, **kwargs):
     subject = instance.subject
     subject.no_papers = subject.papers.count()
     subject.save()
+
 
 post_save.connect(create_paper_allocations, sender=Paper)
 post_save.connect(create_student_report, sender=Student)
@@ -378,11 +443,17 @@ post_save.connect(update_subject_no_papers, sender=Paper)
 
 
 # initializations
-def setup_levels(choices={'P':True, 'O':True, 'A':True,}):
+def setup_levels(choices={
+    'P': True,
+    'O': True,
+    'A': True,
+}):
     for k, levels in LEVELS.items():
         if len(levels) and choices[k]:
-            lg = LevelGroup.objects.create(**{'name':k, 'full':LEVEL_GROUPS[k]})
+            lg = LevelGroup.objects.create(**{
+                'name': k,
+                'full': LEVEL_GROUPS[k]
+            })
             for each in levels:
                 each['level_group'] = lg
                 Level.objects.create(**each)
-
