@@ -16,7 +16,6 @@ from django.contrib.auth.models import User
 class AuthBackend(object):
 
     def authenticate(self, username=None, password=None):
-        print('>>>>>>>>>>>>>')
         user = User.objects.filter(username=username).first()
         if not user:
             user = User.objects.filter(profile__telephone=username).first()
@@ -26,3 +25,12 @@ class AuthBackend(object):
             if is_valid:
                 return user
         return None
+
+
+def validate_unique_username(username, user=None):
+    query = User.objects.filter(username=username)
+    count = query.count()
+    if user and count==1:
+        return user.username == username
+    else:
+        return count == 0

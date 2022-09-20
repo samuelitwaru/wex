@@ -1,5 +1,6 @@
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
+from core.utils import validate_unique_username
 from rest_framework import viewsets, status
 from django.contrib.auth.models import User, Group
 from rest_framework.authtoken.models import Token
@@ -62,6 +63,11 @@ class UserViewSet(viewsets.ModelViewSet):
         user = get_object_or_404(self.queryset, pk=kwargs['pk'])
         group_ids = request.data.pop('groups', [])
         telephone = request.data.pop('telephone', None)
+        username = request.data.get('username')
+        if not validate_unique_username(username, user):
+            return HttpResponseBadRequest(f"The email '{username}' is already being used by a another user.")
+
+            
         user.first_name = request.data.get('first_name')
         user.last_name = request.data.get('last_name')
         user.username = request.data.get('username')

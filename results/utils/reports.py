@@ -264,8 +264,10 @@ class SubjectReport:
 
     def __set_activity_average_score(self):
         try:
-            self.activity_average_score = self.activity_total_scores / len(
-                self.activity_scores)
+            self.activity_average_score = round(
+                self.activity_total_scores / len(self.activity_scores),
+                2
+                )
         except ZeroDivisionError:
             self.activity_average_score = 0
 
