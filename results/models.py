@@ -72,8 +72,8 @@ class Period(TimeStampedModel):
     name = models.CharField(max_length=128)
     start = models.DateField()
     stop = models.DateField()
-    is_promotional = models.BooleanField(default=False)
-    promotions_opened = models.BooleanField(default=False)
+    # is_promotional = models.BooleanField(default=False)
+    # promotions_opened = models.BooleanField(default=False)
 
     class Meta:
         get_latest_by = 'created_at'
