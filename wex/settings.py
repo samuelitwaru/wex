@@ -89,10 +89,15 @@ WSGI_APPLICATION = 'wex.wsgi.application'
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
 DATABASES = {
-    # 'default': {'ENGINE': 'django.db.backends.mysql','NAME': os.environ["WEX_DB_NAME"],'USER': os.environ["WEX_DB_USER"],'PASSWORD': os.environ["WEX_DB_PASSWORD"]},
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'NAME': os.environ["WEX_DB_NAME"],
+    #     'USER': os.environ["WEX_DB_USER"],
+    #     'PASSWORD': os.environ["WEX_DB_PASSWORD"]
+    # },
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': Path(os.path.dirname(BASE_DIR)) / 'db.sqlite3',
+        'NAME': Path(os.path.dirname(BASE_DIR)) / 'db2.sqlite3',
     }
 }
 

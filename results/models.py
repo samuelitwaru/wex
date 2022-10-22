@@ -12,6 +12,7 @@ from results.utils import DEFAULT_USER_PREFS, LEVELS, LEVEL_GROUPS
 from django_resized import ResizedImageField
 from django.db import transaction
 from utils import OverwiteStorageSystem, range_with_floats
+from django.db.utils import OperationalError
 
 LEVEL_CHOICES = [
     ("S.1", "S.1"),
@@ -60,7 +61,7 @@ def teacher_picture_upload_location(instance, filename):
 def period_default():
     try:
         return Period.objects.latest().id
-    except Period.DoesNotExist:
+    except (Period.DoesNotExist, OperationalError):
         return None
 
 
