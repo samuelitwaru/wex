@@ -25,8 +25,9 @@ from core.views import AuthLoginView, AuthLogoutView
 more_patterns = []
 
 # add urls for app if the app in installed
-if 'procurement' in settings.INSTALLED_APPS: from procurement.urls import *
-if 'results' in settings.INSTALLED_APPS: 
+if 'procurement' in settings.INSTALLED_APPS:
+    from procurement.urls import *
+if 'results' in settings.INSTALLED_APPS:
     from results.urls import *
     more_patterns += nested_url_patterns
 
@@ -40,14 +41,16 @@ urlpatterns = [
 ] + more_patterns
 
 # add accounts urls if 'accounts' app in installed
-if 'accounts' in settings.INSTALLED_APPS: 
+if 'accounts' in settings.INSTALLED_APPS:
     urlpatterns.append(re_path("^accounting/", include("accounts.urls")))
 
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.MEDIA_URL,
+                          document_root=settings.MEDIA_ROOT)
 else:
     urlpatterns.append(
-        re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT})
+        re_path(r'^media/(?P<path>.*)$', serve,
+                {'document_root': settings.MEDIA_ROOT})
     )
 
 if settings.DEBUG:
@@ -59,12 +62,12 @@ if settings.DEBUG:
     #   * Provide `extra_context` with view name of `SchemaView`.
     urlpatterns.extend([
         path('openapi', get_schema_view(
-                title="Your Project",
-                description="API for all things …",
-                version="1.0.0"
-            ), name='openapi-schema'),
+            title="Your Project",
+            description="API for all things …",
+            version="1.0.0"
+        ), name='openapi-schema'),
         path('swagger-ui/', TemplateView.as_view(
             template_name='swagger-ui.html',
-            extra_context={'schema_url':'openapi-schema'}
+            extra_context={'schema_url': 'openapi-schema'}
         ), name='swagger-ui'),
     ])

@@ -46,11 +46,9 @@ def create_student_table(computed_report):
         ['', 'REG/NO', f'{student.index_no}', 'House',f'{student.house or ""}', result],
     ]
     style = [('SPAN', (0, 0), (0, 2)), ('LEFTPADDING', (0, 0), (0, 2), 0),
-            #  ('SPAN', (3, 0), (3, 1)), ('SPAN', (3, 2), (3, 3)),
              ('GRID', (1, 0), (-1, -1), 0.5, colors.black), VALIGN_MIDDLE]
     table = Table(data=stretch_data(rows),
                   style=style,
-                #   colWidths=col_widths_by_ratio([1.5, 1, 5, 2])
                 )
     return table
 
@@ -64,7 +62,6 @@ def create_activity_body_table(computed_report, columns):
         ('LEFTPADDING', (0, 0), (-1, 0), 1),
     ]
     header = [col for col, available in columns.items() if available]
-    # rows.append(header)
 
     subject_reports = computed_report.subject_reports
 
@@ -96,30 +93,13 @@ def create_activity_body_table(computed_report, columns):
             'name': 'subject_teacher_initials',
         }]
         row = []
-        # activity_len = len(activity_reports) or 1
         for col in cols1:
             if columns.get(col['col']):
                 row.append(getattr(subject, col['name']))
-                # col_index = header.index(col['col'])
         for col in cols2:
             if columns.get(col['col']):
                 row.append(getattr(subject_report, col['name']))
-                # col_index = header.index(col['col'])
         rows.append(row)
-        # row_index += activity_len
-
-        # for i in range(1, activity_len):
-        #     span_row = []
-        #     [span_row.append('') for col in cols1 if columns.get(col['col'])]
-        #     activity = activity_reports[i]
-        #     print('>>>>>>>>>>>>>>>')
-        #     for col in cols2:
-        #         print('************', columns.get(col['col']))
-        #         if columns.get(col['col']):
-        #             print(activity)
-        #             span_row.append(getattr(activity, col['name']))
-        # [span_row.append('') for col in cols3 if columns.get(col['col'])]
-        # rows.append(span_row)
     rows = [[col.upper() for col in header]] + rows
     style.append(('GRID', (0, 0), (-1, -1), 0.5, colors.black))
     ratios = calc_col_ratios(rows)
