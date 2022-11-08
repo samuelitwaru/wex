@@ -11,18 +11,19 @@ def create_header():
     entity = Entity.objects.first()
     rows = [
         [
-            get_image(f'{settings.MEDIA_ROOT}/{entity.logo}'), style_paragraph(entity.name.upper(), heading_style)
-        ], 
+            get_image(f'{settings.MEDIA_ROOT}/{entity.logo}'), style_paragraph(
+                entity.name.upper(), heading_style)
+        ],
         ['', style_paragraph(entity.location, title_style)],
         ['', style_paragraph(entity.telephone, title_style)],
         ['', style_paragraph(entity.email, title_style)]
     ]
 
     style = [
-            ('SPAN', (0, 0), (0,  -1)), 
-            ('BOTTOMPADDING', (1,0), (1,0), 10),
-            ('LEFTPADDING', (0, 0), (0, -1), 0)
-        ]
+        ('SPAN', (0, 0), (0,  -1)),
+        ('BOTTOMPADDING', (1, 0), (1, 0), 10),
+        ('LEFTPADDING', (0, 0), (0, -1), 0)
+    ]
 
     table = Table(data=stretch_data(rows),
                   style=style,
@@ -41,15 +42,17 @@ def create_student_table(computed_report):
         student.picture = 'profile-placeholder.png'
     image = get_image(f'{settings.MEDIA_ROOT}/{student.picture}')
     rows = [
-        [image, 'Name', f'{student}', 'Sex',f'{student.gender}', 'Result'],
-        ['', 'Class', f'{class_room.name} {class_room.stream or ""}', 'Age',f'{student.age or "_"}', ''],
-        ['', 'REG/NO', f'{student.index_no}', 'House',f'{student.house or ""}', result],
+        [image, 'Name', f'{student}', 'Sex', f'{student.gender}', 'Result'],
+        ['', 'Class', f'{class_room.name} {class_room.stream or ""}',
+            'Age', f'{student.age or "_"}', ''],
+        ['', 'REG/NO', f'{student.index_no}', 'House',
+            f'{student.house or ""}', result],
     ]
     style = [('SPAN', (0, 0), (0, 2)), ('LEFTPADDING', (0, 0), (0, 2), 0),
              ('GRID', (1, 0), (-1, -1), 0.5, colors.black), VALIGN_MIDDLE]
     table = Table(data=stretch_data(rows),
                   style=style,
-                )
+                  )
     return table
 
 
@@ -77,7 +80,7 @@ def create_activity_body_table(computed_report, columns):
             'name': 'name'
         }]
         cols2 = [{
-            'col': 'totalScores',
+            'col': 'scores',
             'name': 'scores_string'
         }, {
             'col': 'average',
@@ -111,14 +114,15 @@ def create_activity_body_table(computed_report, columns):
 
 def create_competency_result_table(computed_report):
     rows = [
-       ['Total',f'{computed_report.total_scores}','Average',f'{round(computed_report.average_scores, 2)}']
+        ['Total', f'{computed_report.total_scores}', 'Average',
+            f'{round(computed_report.average_scores, 2)}']
     ]
     style = [
         BLACK_GRID
     ]
     # ratios = calc_col_ratios(rows)
     table = Table(data=stretch_data(rows),
-                  colWidths=col_widths_by_ratio([3,1,3,1]),
+                  colWidths=col_widths_by_ratio([3, 1, 3, 1]),
                   style=style
                   )
     return table
@@ -127,20 +131,23 @@ def create_competency_result_table(computed_report):
 def create_comment_table(computed_report):
     ht_signature = ''
     ct_signature = ''
-    head_teacher = User.objects.filter(groups__name__in=['head_teacher']).first()
+    head_teacher = User.objects.filter(
+        groups__name__in=['head_teacher']).first()
     class_teacher = computed_report.student.class_room.teacher.user
     if head_teacher:
         ht_profile, created = Profile.objects.get_or_create(user=head_teacher)
-        ht_signature = get_image(f'{settings.MEDIA_ROOT}/{ht_profile.signature}', height=35)
+        ht_signature = get_image(
+            f'{settings.MEDIA_ROOT}/{ht_profile.signature}', height=35)
     if class_teacher:
         ct_profile, created = Profile.objects.get_or_create(user=class_teacher)
-        ct_signature = get_image(f'{settings.MEDIA_ROOT}/{ct_profile.signature}', height=35)
+        ct_signature = get_image(
+            f'{settings.MEDIA_ROOT}/{ct_profile.signature}', height=35)
     rows = [
         ['Class Teacher Comment', 'Signature'],
-        [computed_report.report.class_teacher_comment,ct_signature],
-        ['',''],
+        [computed_report.report.class_teacher_comment, ct_signature],
+        ['', ''],
         ['Head Teacher Comment', 'Signature'],
-        [computed_report.report.head_teacher_comment,ht_signature],
+        [computed_report.report.head_teacher_comment, ht_signature],
     ]
     style = [
         ('GRID', (0, 0), (-1, 1), 0.5, colors.grey),
@@ -187,14 +194,15 @@ def create_score_key_table():
 
 def create_result_table(computed_report):
     rows = [
-       ['Total',f'{computed_report.total_scores}','Average',f'{round(computed_report.average_scores, 2)}']
+        ['Total', f'{computed_report.total_scores}', 'Average',
+            f'{round(computed_report.average_scores, 2)}']
     ]
     style = [
         BLACK_GRID
     ]
     # ratios = calc_col_ratios(rows)
     table = Table(data=stretch_data(rows),
-                  colWidths=col_widths_by_ratio([3,1,3,1]),
+                  colWidths=col_widths_by_ratio([3, 1, 3, 1]),
                   style=style
                   )
     return table
@@ -231,7 +239,8 @@ class CompetencePDFReport:
         entity_table = create_header()
         student_table = create_student_table(self.computed_report)
         title = style_paragraph(self.title.upper(), heading_style2)
-        body_table = create_activity_body_table(self.computed_report, self.columns)
+        body_table = create_activity_body_table(
+            self.computed_report, self.columns)
 
         result_table = create_result_table(self.computed_report)
         comment_table = create_comment_table(self.computed_report)
@@ -242,7 +251,6 @@ class CompetencePDFReport:
                 entity_table, student_table, space, title, space, body_table, space, result_table, space, comment_table, space, next_term_table, space, score_key_table
         ]:
             self.elements.append(element)
-       
 
     @property
     def title(self):

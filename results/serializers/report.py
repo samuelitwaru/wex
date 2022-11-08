@@ -12,8 +12,11 @@ from ..models import Report
 class ReportSerializer(serializers.ModelSerializer):
     level = MiniLevelSerializer(read_only=True)
     student = StudentSerializer(read_only=True)
-    promo_from_class_room_detail = MiniClassRoomSerializer(source='promo_from_class_room', read_only=True)
-    promo_to_class_room_detail = MiniClassRoomSerializer(source='promo_to_class_room', read_only=True)
+    promo_from_class_room_detail = MiniClassRoomSerializer(
+        source='promo_from_class_room', read_only=True)
+    promo_to_class_room_detail = MiniClassRoomSerializer(
+        source='promo_to_class_room', read_only=True)
+
     class Meta:
         model = Report
         # fields = '__all__'
@@ -50,6 +53,7 @@ class SubjectReportSerializer(serializers.Serializer):
     activity_average_score = serializers.IntegerField()
     activity_score = serializers.IntegerField()
     activity_score_identifier = serializers.CharField()
+    scores_string = serializers.CharField()
 
 
 class ComputedReportSerializer(serializers.Serializer):
