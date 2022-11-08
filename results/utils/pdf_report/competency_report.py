@@ -78,7 +78,7 @@ def create_activity_body_table(computed_report, columns):
         }]
         cols2 = [{
             'col': 'totalScores',
-            'name': 'activity_total_scores'
+            'name': 'scores_string'
         }, {
             'col': 'average',
             'name': 'activity_average_score'

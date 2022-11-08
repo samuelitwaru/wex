@@ -117,7 +117,8 @@ def compute_student_report(student, grading_system, period):
         scores = models.ActivityScore.objects.filter(
             student=student, activity__in=[act.id for act in activities])
         subject_report.activity_scores = scores
-        print(subject_report.scores)
+        subject_report.scores_string = ', '.join([f'{score.mark}' for score in scores])
+        print(subject_report.scores_string)
         for activity in activities:
             # scores = [score.mark for score in activity.activityscore_set.filter(student=student).all()]
             score = models.ActivityScore.objects.filter(
@@ -208,6 +209,7 @@ class SubjectReport:
     skills = ''
     remarks = ''
     activity_scores = []
+    # scores = []
 
     def __init__(self, grading_system, subject=None, papers=[], activities=[]):
         self.grading_system = grading_system
@@ -262,6 +264,9 @@ class SubjectReport:
     def __set_activity_total_scores(self):
         self.activity_total_scores = sum(
             [score.mark for score in self.activity_scores])
+        
+    def __set_activity_scores(self):
+        self.scores = [score.mark for score in self.activity_scores]
 
     def __set_activity_average_score(self):
         try:
@@ -291,6 +296,7 @@ class SubjectReport:
         self.__set_letter_grade()
         self.__set_points()
         self.__set_subject_teacher_initals()
+        self.__set_activity_scores()
         self.__set_activity_total_scores()
         self.__set_activity_average_score()
         self.__set_activity_score()
