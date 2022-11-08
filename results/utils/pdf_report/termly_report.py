@@ -14,19 +14,20 @@ def create_header(title):
         [
             get_image(f'{settings.MEDIA_ROOT}/{entity.logo}'),
             style_paragraph(entity.name.upper(), heading_style)
-        ], 
+        ],
         ['', style_paragraph(entity.location, title_style)],
         ['', style_paragraph(entity.telephone, title_style)],
         ['', style_paragraph(entity.email, title_style)]
     ]
-    
+
     style = [('SPAN', (0, 0), (0, -1)),
-                ('BOTTOMPADDING', (1,0), (1,0), 10),
+             ('BOTTOMPADDING', (1, 0), (1, 0), 10),
              ('LEFTPADDING', (0, 0), (0, -1), 0)]
     table = Table(data=stretch_data(rows),
                   style=style,
                   colWidths=col_widths_by_ratio([1, 4]))
     return table
+
 
 def create_student_table(computed_report):
     student = computed_report.student
@@ -39,18 +40,21 @@ def create_student_table(computed_report):
         student.picture = 'profile-placeholder.png'
     image = get_image(f'{settings.MEDIA_ROOT}/{student.picture}')
     rows = [
-        [image, 'Name', f'{student}', 'Sex',f'{student.gender}', 'Result'],
-        ['', 'Class', f'{class_room.name} {class_room.stream or ""}', 'Age',f'{student.age or "_"}', ''],
-        ['', 'REG/NO', f'{student.index_no}', 'House',f'{student.house or ""}', result],
+        [image, 'Name', f'{student}', 'Sex', f'{student.gender}', 'Result'],
+        ['', 'Class', f'{class_room.name} {class_room.stream or ""}',
+            'Age', f'{student.age or "_"}', ''],
+        ['', 'REG/NO', f'{student.index_no}', 'House',
+            f'{student.house or ""}', result],
     ]
     style = [('SPAN', (0, 0), (0, 2)), ('LEFTPADDING', (0, 0), (0, 2), 0),
-            #  ('SPAN', (3, 0), (3, 1)), ('SPAN', (3, 2), (3, 3)),
+             #  ('SPAN', (3, 0), (3, 1)), ('SPAN', (3, 2), (3, 3)),
              ('GRID', (1, 0), (-1, -1), 0.5, colors.black), VALIGN_MIDDLE]
     table = Table(data=stretch_data(rows),
                   style=style,
-                #   colWidths=col_widths_by_ratio([1.5, 1, 5, 2])
-                )
+                  #   colWidths=col_widths_by_ratio([1.5, 1, 5, 2])
+                  )
     return table
+
 
 def create_body_table(computed_report, columns):
     rows = []
@@ -162,20 +166,26 @@ def create_body_table(computed_report, columns):
     table.vAlign = 'MIDDLE'
     return table
 
+
 def create_grading_system_table(grading_system):
     gs = grading_system
     rows = [
         ['D1', 'D2', 'C3', 'C4', 'C5', 'C6', 'P7', 'P8', 'F9'],
-        list(
-            map(
-                lambda i: str(i+1),
-                [gs.D2, gs.C3, gs.C4, gs.C5, gs.C6, gs.P7, gs.P8, gs.F9, -1]
-            )
-        )
+        [f'{gs.D2+1} - 100', f'{gs.C3+1} - {gs.D2}',
+         f'{gs.C4+1} - {gs.C3}', f'{gs.C5+1} - {gs.C4}', f'{gs.C6+1} - {gs.C5}', f'{gs.P7+1} - {gs.C6}', f'{gs.P8+1} - {gs.P7}', f'{gs.F9+1} - {gs.P8}', f'{-1+1} - {gs.F9}'],
+        # list(
+        #     map(
+        #         lambda i: str(i+1),
+        #         [gs.D2, gs.C3,
+        #             gs.C4, gs.C5, gs.C6, gs.P7, gs.P8, gs.F9, -1]
+        #     )
+        # )
     ]
     style = [BLACK_GRID]
-    table = Table(data=stretch_data(rows), style=style, colWidths=col_widths_by_ratio([1]*9))
+    table = Table(data=stretch_data(rows), style=style,
+                  colWidths=col_widths_by_ratio([1]*9))
     return table
+
 
 def create_result_table(computed_report, student):
     rows = [
@@ -193,7 +203,6 @@ def create_result_table(computed_report, student):
     return table
 
 
-
 class TermlyPDFReport:
 
     def __init__(self, computed_report, columns, grading_system, period):
@@ -204,7 +213,7 @@ class TermlyPDFReport:
         self.elements = []
         self.student = self.computed_report.student
         self.level_group = self.student.class_room.level.level_group
-    
+
     @property
     def title(self):
         level_group_name = self.student.class_room.level.level_group.name
@@ -218,7 +227,7 @@ class TermlyPDFReport:
         body_table = create_body_table(self.computed_report, self.columns)
         gs_table = create_grading_system_table(self.grading_system)
         result_table = create_result_table(self.computed_report,
-                                   self.computed_report.student)
+                                           self.computed_report.student)
         comment_table = create_comment_table(self.computed_report)
         next_term_table = create_next_term_table()
 
@@ -227,7 +236,7 @@ class TermlyPDFReport:
             space, result_table, space, comment_table, space, next_term_table
         ]:
             self.elements.append(element)
-    
+
     def run(self):
         self.create_elements()
         doc = SimpleDocTemplate(

@@ -31,7 +31,7 @@ def create_header():
     return table
 
 
-def create_student_table(computed_report):
+def create_student_table(computed_report, period):
     student = computed_report.student
     if student.class_room.level.level_group.name == 'A':
         result = f'{computed_report.points} POINTS'
@@ -42,11 +42,11 @@ def create_student_table(computed_report):
         student.picture = 'profile-placeholder.png'
     image = get_image(f'{settings.MEDIA_ROOT}/{student.picture}')
     rows = [
-        [image, 'Name', f'{student}', 'Sex', f'{student.gender}', 'Result'],
+        [image, 'Name', f'{student}', 'Sex', f'{student.gender}'],
         ['', 'Class', f'{class_room.name} {class_room.stream or ""}',
-            'Age', f'{student.age or "_"}', ''],
-        ['', 'REG/NO', f'{student.index_no}', 'House',
-            f'{student.house or ""}', result],
+            'Age', f'{student.age or "_"}'],
+        ['', 'REG/NO', f'{student.index_no}', 'Term',
+            f'{period}'],
     ]
     style = [('SPAN', (0, 0), (0, 2)), ('LEFTPADDING', (0, 0), (0, 2), 0),
              ('GRID', (1, 0), (-1, -1), 0.5, colors.black), VALIGN_MIDDLE]
@@ -144,10 +144,12 @@ def create_comment_table(computed_report):
             f'{settings.MEDIA_ROOT}/{ct_profile.signature}', height=35)
     rows = [
         ['Class Teacher Comment', 'Signature'],
-        [computed_report.report.class_teacher_comment, ct_signature],
+        [computed_report.report.class_teacher_comment,
+            ct_signature if computed_report.report.class_teacher_comment else ''],
         ['', ''],
         ['Head Teacher Comment', 'Signature'],
-        [computed_report.report.head_teacher_comment, ht_signature],
+        [computed_report.report.head_teacher_comment,
+            ht_signature if computed_report.report.head_teacher_comment else ''],
     ]
     style = [
         ('GRID', (0, 0), (-1, 1), 0.5, colors.grey),
@@ -237,7 +239,7 @@ class CompetencePDFReport:
     def create_elements(self):
         self.elements = []
         entity_table = create_header()
-        student_table = create_student_table(self.computed_report)
+        student_table = create_student_table(self.computed_report, self.period)
         title = style_paragraph(self.title.upper(), heading_style2)
         body_table = create_activity_body_table(
             self.computed_report, self.columns)
