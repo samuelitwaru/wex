@@ -29,7 +29,33 @@ def create_header(title):
     return table
 
 
-def create_student_table(computed_report):
+# def create_student_table(computed_report):
+#     student = computed_report.student
+#     if student.class_room.level.level_group.name == 'A':
+#         result = f'{computed_report.points} POINTS'
+#     else:
+#         result = f'{computed_report.aggregates} AGGREAGATES'
+#     class_room = student.class_room
+#     if not student.picture:
+#         student.picture = 'profile-placeholder.png'
+#     image = get_image(f'{settings.MEDIA_ROOT}/{student.picture}')
+#     rows = [
+#         [image, 'Name', f'{student}', 'Sex', f'{student.gender}', 'Result'],
+#         ['', 'Class', f'{class_room.name} {class_room.stream or ""}',
+#             'Age', f'{student.age or "_"}', ''],
+#         ['', 'REG/NO', f'{student.index_no}', 'House',
+#             f'{student.house or ""}', result],
+#     ]
+#     style = [('SPAN', (0, 0), (0, 2)), ('LEFTPADDING', (0, 0), (0, 2), 0),
+#              #  ('SPAN', (3, 0), (3, 1)), ('SPAN', (3, 2), (3, 3)),
+#              ('GRID', (1, 0), (-1, -1), 0.5, colors.black), VALIGN_MIDDLE]
+#     table = Table(data=stretch_data(rows),
+#                   style=style,
+#                   #   colWidths=col_widths_by_ratio([1.5, 1, 5, 2])
+#                   )
+#     return table
+
+def create_student_table(computed_report, period):
     student = computed_report.student
     if student.class_room.level.level_group.name == 'A':
         result = f'{computed_report.points} POINTS'
@@ -40,18 +66,16 @@ def create_student_table(computed_report):
         student.picture = 'profile-placeholder.png'
     image = get_image(f'{settings.MEDIA_ROOT}/{student.picture}')
     rows = [
-        [image, 'Name', f'{student}', 'Sex', f'{student.gender}', 'Result'],
+        [image, 'Name', f'{student}', 'Sex', f'{student.gender}'],
         ['', 'Class', f'{class_room.name} {class_room.stream or ""}',
-            'Age', f'{student.age or "_"}', ''],
-        ['', 'REG/NO', f'{student.index_no}', 'House',
-            f'{student.house or ""}', result],
+            'Age', f'{student.age or "_"}'],
+        ['', 'REG/NO', f'{student.index_no}', 'Term',
+            f'{period}'],
     ]
     style = [('SPAN', (0, 0), (0, 2)), ('LEFTPADDING', (0, 0), (0, 2), 0),
-             #  ('SPAN', (3, 0), (3, 1)), ('SPAN', (3, 2), (3, 3)),
              ('GRID', (1, 0), (-1, -1), 0.5, colors.black), VALIGN_MIDDLE]
     table = Table(data=stretch_data(rows),
                   style=style,
-                  #   colWidths=col_widths_by_ratio([1.5, 1, 5, 2])
                   )
     return table
 
@@ -223,7 +247,7 @@ class TermlyPDFReport:
         self.elements = []
         entity_table = create_header(self.title)
         title = style_paragraph(self.title.upper(), heading_style2)
-        student_table = create_student_table(self.computed_report)
+        student_table = create_student_table(self.computed_report, self.period)
         body_table = create_body_table(self.computed_report, self.columns)
         gs_table = create_grading_system_table(self.grading_system)
         result_table = create_result_table(self.computed_report,
@@ -232,8 +256,8 @@ class TermlyPDFReport:
         next_term_table = create_next_term_table()
 
         for element in [
-            entity_table, space, title, hr, student_table, space, body_table, space, gs_table,
-            space, result_table, space, comment_table, space, next_term_table
+            entity_table, space, title, hr, student_table, space, body_table, space,
+            space, result_table, space, comment_table, space, next_term_table, gs_table
         ]:
             self.elements.append(element)
 

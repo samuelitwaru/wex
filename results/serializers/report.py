@@ -54,6 +54,7 @@ class SubjectReportSerializer(serializers.Serializer):
     activity_score = serializers.IntegerField()
     activity_score_identifier = serializers.CharField()
     scores_string = serializers.CharField()
+    AOI = serializers.IntegerField()
 
 
 class ComputedReportSerializer(serializers.Serializer):

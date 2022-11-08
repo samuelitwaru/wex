@@ -117,7 +117,8 @@ def compute_student_report(student, grading_system, period):
         scores = models.ActivityScore.objects.filter(
             student=student, activity__in=[act.id for act in activities])
         subject_report.activity_scores = scores
-        subject_report.scores_string = ', '.join([f'{score.mark}' for score in scores])
+        subject_report.AOI = len(scores)
+        subject_report.scores_string = ' | '.join([f'{score.mark}' for score in scores])
         print(subject_report.scores_string)
         for activity in activities:
             # scores = [score.mark for score in activity.activityscore_set.filter(student=student).all()]
