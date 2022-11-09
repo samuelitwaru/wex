@@ -88,7 +88,7 @@ def compute_student_report(student, grading_system, period):
         if custom_grading_system:
             grading_system = custom_grading_system.grading_system
         subject_report = SubjectReport(grading_system, subject, [], [])
-        papers = subject.papers.all()
+        # papers = subject.papers.all()
         papers = student.class_room.level.papers.filter(subject=subject)
         allocation = models.PaperAllocation.objects.filter(
             paper=papers.first(), class_room=student.class_room).first()
@@ -119,7 +119,7 @@ def compute_student_report(student, grading_system, period):
         subject_report.activity_scores = scores
         subject_report.AOI = len(scores)
         subject_report.scores_string = ' | '.join([f'{score.mark}' for score in scores])
-        print(subject_report.scores_string)
+        print(subject_report.papers)
         for activity in activities:
             # scores = [score.mark for score in activity.activityscore_set.filter(student=student).all()]
             score = models.ActivityScore.objects.filter(
@@ -370,3 +370,8 @@ class ActivityReport:
         elif self.score >= 2.5 and self.score <= 3:
             return "Outstanding"
         return ''
+
+
+class AssessmentScore:
+    category = ''
+    score = 0
