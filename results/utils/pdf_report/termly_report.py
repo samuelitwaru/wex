@@ -74,8 +74,12 @@ def create_student_table(computed_report, period):
     ]
     style = [('SPAN', (0, 0), (0, 2)), ('LEFTPADDING', (0, 0), (0, 2), 0),
              ('GRID', (1, 0), (-1, -1), 0.5, colors.black), VALIGN_MIDDLE]
+    ratios = calc_col_ratios(rows)
+    print(ratios)
+    col_widths = col_widths_by_ratio([1.5,1,3,1,3])
     table = Table(data=stretch_data(rows),
                   style=style,
+                  colWidths=col_widths
                   )
     return table
 
@@ -107,7 +111,7 @@ def create_body_table(computed_report, columns):
             'col': 'paper',
             'name': 'description'
         }, {
-            'col': 'assessments',
+            'col': 'scores',
             'name': 'scores_string'
         }, {
             'col': 'score',
@@ -129,7 +133,7 @@ def create_body_table(computed_report, columns):
             'col': 'subjectAverage',
             'name': 'average'
         }, {
-            'col': 'aggregates',
+            'col': 'Grade',
             'name': 'aggregate'
         }, {
             'col': 'grade',
@@ -195,7 +199,7 @@ def create_grading_system_table(grading_system):
     gs = grading_system
     rows = [
         ['D1', 'D2', 'C3', 'C4', 'C5', 'C6', 'P7', 'P8', 'F9'],
-        [f'{gs.D2+1} - 100', f'{gs.C3+1} - {gs.D2}',
+        [f'{gs.D2+1} +', f'{gs.C3+1} - {gs.D2}',
          f'{gs.C4+1} - {gs.C3}', f'{gs.C5+1} - {gs.C4}', f'{gs.C6+1} - {gs.C5}', f'{gs.P7+1} - {gs.C6}', f'{gs.P8+1} - {gs.P7}', f'{gs.F9+1} - {gs.P8}', f'{-1+1} - {gs.F9}'],
         # list(
         #     map(
@@ -219,7 +223,7 @@ def create_result_table(computed_report, student):
         rows.append(['POINTS', f'{computed_report.points} POINTS'])
     else:
         rows.append(
-            ['AGGREGATES', f'{computed_report.aggregates} AGGREAGATES'])
+            ['AGGREGATES', f'{computed_report.aggregates}'])
     style = [BLACK_GRID, ('SPAN', (0, 0), (1, 0))]
     ratios = calc_col_ratios(rows)
     col_widths = col_widths_by_ratio(ratios)
@@ -257,7 +261,7 @@ class TermlyPDFReport:
 
         for element in [
             entity_table, space, title, hr, student_table, space, body_table, space,
-            space, result_table, space, comment_table, space, next_term_table, gs_table
+            space, result_table, space, comment_table, space, next_term_table, space, gs_table
         ]:
             self.elements.append(element)
 
