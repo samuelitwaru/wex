@@ -1,6 +1,7 @@
 from results import models
 
 
+
 def wrap_aggr(aggr):
     if aggr <= 2:
         return f'D{aggr}'
@@ -75,6 +76,9 @@ def compute_student_report(student, grading_system, period):
     - generates a computed report object for the specified student, using the specified grading system, in the specified period
     - returns a model report object and a computed report object i.e (report, computed_report)
     '''
+    bot = models.AssessmentCategory.objects.filter(name='BOT').first()
+    mot = models.AssessmentCategory.objects.filter(name='MOT').first()
+    eot = models.AssessmentCategory.objects.filter(name='EOT').first()
     report, created = models.Report.objects.get_or_create(period=period,
                                                           student=student)
     computed_report = ComputedReport(student, report, [])
@@ -88,7 +92,7 @@ def compute_student_report(student, grading_system, period):
         if custom_grading_system:
             grading_system = custom_grading_system.grading_system
         subject_report = SubjectReport(grading_system, subject, [], [])
-        papers = subject.papers.all()
+        # papers = subject.papers.all()
         papers = student.class_room.level.papers.filter(subject=subject)
         allocation = models.PaperAllocation.objects.filter(
             paper=papers.first(), class_room=student.class_room).first()
@@ -98,6 +102,16 @@ def compute_student_report(student, grading_system, period):
         if len(papers) == 0:
             continue
         for paper in papers:
+            bot_assessment = models.Assessment.objects.filter(paper=paper, assessment_category=bot).first()
+            mot_assessment = models.Assessment.objects.filter(paper=paper, assessment_category=mot).first()
+            eot_assessment = models.Assessment.objects.filter(paper=paper, assessment_category=eot).first()
+            bot_score = models.Score.objects.filter(assessment=bot_assessment).first()
+            mot_score = models.Score.objects.filter(assessment=mot_assessment).first()
+            eot_score = models.Score.objects.filter(assessment=eot_assessment).first()
+            print(getattr(bot_score, 'mark', None))
+            print(getattr(mot_score, 'mark', None))
+            print(getattr(eot_score, 'mark', None))
+            print('==========================')
             assessment_ids = [
                 assessment.id
                 for assessment in models.Assessment.objects.filter(
@@ -117,8 +131,8 @@ def compute_student_report(student, grading_system, period):
         scores = models.ActivityScore.objects.filter(
             student=student, activity__in=[act.id for act in activities])
         subject_report.activity_scores = scores
-        subject_report.scores_string = ', '.join([f'{score.mark}' for score in scores])
-        print(subject_report.scores_string)
+        subject_report.AOI = len(scores)
+        subject_report.scores_string = ' | '.join([f'{score.mark}' for score in scores])
         for activity in activities:
             # scores = [score.mark for score in activity.activityscore_set.filter(student=student).all()]
             score = models.ActivityScore.objects.filter(
@@ -306,6 +320,9 @@ class SubjectReport:
 class PaperReport:
     paper = None
     scores = []
+    bot_score = 0
+    mot_score = 0
+    eot_score = 0
 
     def __init__(self, grading_system, paper, scores):
         self.grading_system = grading_system
@@ -369,3 +386,8 @@ class ActivityReport:
         elif self.score >= 2.5 and self.score <= 3:
             return "Outstanding"
         return ''
+
+
+class AssessmentScore:
+    category = ''
+    score = 0

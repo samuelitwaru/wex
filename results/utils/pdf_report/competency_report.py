@@ -80,6 +80,9 @@ def create_activity_body_table(computed_report, columns):
             'name': 'name'
         }]
         cols2 = [{
+            'col': 'AOI',
+            'name': 'AOI'
+        }, {
             'col': 'scores',
             'name': 'scores_string'
         }, {
