@@ -44,6 +44,7 @@ class SubjectReportSerializer(serializers.Serializer):
     subject = MiniSubjectSerializer()
     papers = PaperReportSerializer(many=True)
     activities = ActivityReportSerializer(many=True)
+    total = serializers.IntegerField()
     average = serializers.IntegerField()
     aggregate = serializers.IntegerField()
     letter_grade = serializers.CharField()

@@ -1,7 +1,6 @@
 from results import models
 
 
-
 def wrap_aggr(aggr):
     if aggr <= 2:
         return f'D{aggr}'
@@ -24,25 +23,36 @@ def compute_subject_grade(aggregates=[8, 8, 3]):
 
         if n > 2:
             if worst <= 3:
-                if n_worst == 1: return "A"
-                else: return "B"
+                if n_worst == 1:
+                    return "A"
+                else:
+                    return "B"
             elif worst <= 4:
-                if n_worst == 1: return "B"
-                else: return "C"
+                if n_worst == 1:
+                    return "B"
+                else:
+                    return "C"
             elif worst <= 5:
-                if n_worst == 1: return "C"
-                else: return "D"
+                if n_worst == 1:
+                    return "C"
+                else:
+                    return "D"
             elif worst <= 6:
-                if n_worst == 1: return "D"
-                else: return "E"
+                if n_worst == 1:
+                    return "D"
+                else:
+                    return "E"
             elif worst <= 7:
-                if n_worst == 1: return "E"
-                else: return "O"
+                if n_worst == 1:
+                    return "E"
+                else:
+                    return "O"
             elif worst <= 8:
                 if n_worst == 1:
                     other = aggregates.copy()
                     other.remove(worst)
-                    if max(other) <= 6: return "E"
+                    if max(other) <= 6:
+                        return "E"
                 return "O"
             elif worst <= 9:
                 if n_worst == 1:
@@ -57,11 +67,16 @@ def compute_subject_grade(aggregates=[8, 8, 3]):
                         return "O"
                 return "F"
         elif n > 1:
-            if worst <= 2: return "A"
-            elif worst <= 3: return "B"
-            elif worst <= 4: return "C"
-            elif worst <= 5: return "D"
-            elif worst <= 6: return "E"
+            if worst <= 2:
+                return "A"
+            elif worst <= 3:
+                return "B"
+            elif worst <= 4:
+                return "C"
+            elif worst <= 5:
+                return "D"
+            elif worst <= 6:
+                return "E"
             elif (worst == 7 or worst == 8) and sum(aggregates) <= 12:
                 return "E"
             elif (worst == 7 or worst == 8) and sum(aggregates) <= 16:
@@ -97,17 +112,25 @@ def compute_student_report(student, grading_system, period):
         allocation = models.PaperAllocation.objects.filter(
             paper=papers.first(), class_room=student.class_room).first()
 
-        if allocation: subject_report.teacher = allocation.teacher
-        else: subject_report.teacher = None
+        if allocation:
+            subject_report.teacher = allocation.teacher
+        else:
+            subject_report.teacher = None
         if len(papers) == 0:
             continue
         for paper in papers:
-            bot_assessment = models.Assessment.objects.filter(paper=paper, assessment_category=bot).first()
-            mot_assessment = models.Assessment.objects.filter(paper=paper, assessment_category=mot).first()
-            eot_assessment = models.Assessment.objects.filter(paper=paper, assessment_category=eot).first()
-            bot_score = models.Score.objects.filter(assessment=bot_assessment).first()
-            mot_score = models.Score.objects.filter(assessment=mot_assessment).first()
-            eot_score = models.Score.objects.filter(assessment=eot_assessment).first()
+            bot_assessment = models.Assessment.objects.filter(
+                paper=paper, assessment_category=bot).first()
+            mot_assessment = models.Assessment.objects.filter(
+                paper=paper, assessment_category=mot).first()
+            eot_assessment = models.Assessment.objects.filter(
+                paper=paper, assessment_category=eot).first()
+            bot_score = models.Score.objects.filter(
+                assessment=bot_assessment).first()
+            mot_score = models.Score.objects.filter(
+                assessment=mot_assessment).first()
+            eot_score = models.Score.objects.filter(
+                assessment=eot_assessment).first()
             print(getattr(bot_score, 'mark', None))
             print(getattr(mot_score, 'mark', None))
             print(getattr(eot_score, 'mark', None))
@@ -132,13 +155,16 @@ def compute_student_report(student, grading_system, period):
             student=student, activity__in=[act.id for act in activities])
         subject_report.activity_scores = scores
         subject_report.AOI = len(scores)
-        subject_report.scores_string = ' | '.join([f'{score.mark}' for score in scores])
+        subject_report.scores_string = ' | '.join(
+            [f'{score.mark}' for score in scores])
         for activity in activities:
             # scores = [score.mark for score in activity.activityscore_set.filter(student=student).all()]
             score = models.ActivityScore.objects.filter(
                 activity=activity, student=student).first()
-            if score: mark = score.mark
-            else: mark = 0
+            if score:
+                mark = score.mark
+            else:
+                mark = 0
             activity_report = ActivityReport(activity, mark)
             subject_report.activities.append(activity_report)
         subject_report.set_values()
@@ -183,8 +209,10 @@ class ComputedReport:
         compulsories = []
         optionals = []
         for subj in self.subject_reports:
-            if subj.subject.is_selectable: optionals.append(subj.aggregate)
-            else: compulsories.append(subj.aggregate)
+            if subj.subject.is_selectable:
+                optionals.append(subj.aggregate)
+            else:
+                compulsories.append(subj.aggregate)
         compulsories.sort()
         optionals.sort()
         if len(optionals) and len(optionals) >= 2:
@@ -230,6 +258,9 @@ class SubjectReport:
         self.subject = subject
         self.papers = papers
         self.activities = activities
+
+    def __set_total(self):
+        self.total = sum([paper.average for paper in self.papers])
 
     def __set_average(self):
         try:
@@ -278,7 +309,7 @@ class SubjectReport:
     def __set_activity_total_scores(self):
         self.activity_total_scores = sum(
             [score.mark for score in self.activity_scores])
-        
+
     def __set_activity_scores(self):
         self.scores = [score.mark for score in self.activity_scores]
 
@@ -287,7 +318,7 @@ class SubjectReport:
             self.activity_average_score = round(
                 self.activity_total_scores / len(self.activity_scores),
                 2
-                )
+            )
         except ZeroDivisionError:
             self.activity_average_score = 0
 
@@ -305,6 +336,7 @@ class SubjectReport:
             self.activity_score_identifier = ''
 
     def set_values(self):
+        self.__set_total()
         self.__set_average()
         self.__set_aggregate()
         self.__set_letter_grade()

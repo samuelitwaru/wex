@@ -76,7 +76,7 @@ def create_student_table(computed_report, period):
              ('GRID', (1, 0), (-1, -1), 0.5, colors.black), VALIGN_MIDDLE]
     ratios = calc_col_ratios(rows)
     print(ratios)
-    col_widths = col_widths_by_ratio([1.5,1,3,1,3])
+    col_widths = col_widths_by_ratio([1.5, 1, 3, 1, 3])
     table = Table(data=stretch_data(rows),
                   style=style,
                   colWidths=col_widths
@@ -130,6 +130,9 @@ def create_body_table(computed_report, columns):
             'name': 'aggregate'
         }]
         cols3 = [{
+            'col': 'subjectTotal',
+            'name': 'total'
+        }, {
             'col': 'subjectAverage',
             'name': 'average'
         }, {
